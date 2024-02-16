@@ -1,11 +1,10 @@
 import { View, StyleSheet, Text, TouchableOpacity, Image, Alert } from 'react-native'
 import { colors } from '../styles/colors'
-import { API_URL } from '../../config'
 import axios from 'axios'
 import { useUser } from '../hooks/user'
 
 export function ItemsCard({ itemData }) {
-  const { user, selectedPrinter } = useUser()
+  const { user, selectedPrinter, baseURL } = useUser()
 
   const handlePrintItemTag = () => {
     Alert.alert("Etiqueta de Nascionalização","Deseja realmente imprimir a etiqueta deste produto?", [
@@ -18,11 +17,7 @@ export function ItemsCard({ itemData }) {
             impressora: selectedPrinter?.codigo,
           }
           axios
-            .post(`${API_URL}/rest/wNacionaliz`, body, {
-              headers: {
-                Authorization: `Bearer ${user?.access_token}`,
-              },
-            })
+            .post(`/wNacionaliz`, body)
             .then((response) => {
               console.log(response.data)
             })

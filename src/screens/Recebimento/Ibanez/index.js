@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   DrawerLayoutAndroid,
   Image,
-  Button,
   Modal,
   Platform,
   ScrollView,
@@ -20,7 +19,6 @@ import {
 import { colors } from '../../../styles/colors'
 import { useEffect, useState, useRef } from 'react'
 import axios from 'axios'
-import { API_URL } from '../../../../config'
 import Icon from 'react-native-vector-icons/Ionicons'
 import { useUser } from '../../../hooks/user'
 import { BarCodeScanner } from 'expo-barcode-scanner'
@@ -29,102 +27,201 @@ import { RFPercentage } from 'react-native-responsive-fontsize'
 export default function Ibanez({ navigation }) {
   const [openCameraReader, setOpenCameraReader] = useState(null);
   const [hasPermission, setHasPermission] = useState(null);
-  const { user } = useUser()
+  const { ambiente } = useUser()
   const [loading, setLoading] = useState(true)
   const [pendentes, setPendentes] = useState(null)
   const [selectedPendente, setSelectedPendente] = useState(null)
-  const [emConformidade,setEmConformidade] = useState(true)
-  const [blockSale, setBlockSale] = useState(false)
-
-  const [motivo, setMotivo] = useState(null)
+  const [buscarPor, setBuscarPor] = useState('etiqueta')
+  const [motivos, setMotivos] = useState(null)
 
   const drawer = useRef(null);
-  const [drawerPosition, setDrawerPosition] = useState('right');
 
   useEffect(() => {
     const getBarCodeScannerPermissions = async () => {
       const { status } = await BarCodeScanner.requestPermissionsAsync();
       setHasPermission(status === 'granted');
     };
-
-    getBarCodeScannerPermissions();
+    if(!hasPermission) {
+      getBarCodeScannerPermissions();
+    }
   }, []);
 
 
   async function handleBarCodeScanned({ type, data }) {
+    const inCamera = openCameraReader;
     if(loading) {
         return;
     }
+    setSelectedPendente({BLOQVENDA: 'N',CONFORMIDADE: 'S', MOTIVO: []})
     setLoading(true);
 
-    if(data === openCameraReader.NUMSERIE) {
+    if(buscarPor === 'etiqueta' && data === inCamera.ETIQUETA) {
       // Trecho de consulta
-      setSelectedPendente(openCameraReader)
+      setSelectedPendente({...selectedPendente, ...inCamera})
       setTimeout(() => {
         setOpenCameraReader(null);
+        if(inCamera.NUMSERIE === '') {
+          setLoading(true);
+          setBuscarPor('numserie')
+          Alert.alert('Atenção!','Este produto ainda não possui número de série.\nPor favor, bipe a etiqueta do número de série do produto.',[
+            {
+              title: 'ok',
+              onPress: () => setOpenCameraReader(inCamera)
+            }
+          ])
+        }
       },200)
       setLoading(false);
 
+    } else if(buscarPor === 'numserie') {
+      setOpenCameraReader(null);
+      setLoading(true);
+      if(data === inCamera.ETIQUETA) {
+        Alert.alert('Atenção!','A etiqueta bipada se refere à etiqueta do produto e não ao número de série.',[
+          {
+            title: 'ok',
+            onPress: () => setOpenCameraReader(inCamera)
+          }
+        ])
+      } else {
+        axios.get(`/wIbanezEan?Produto=${selectedPendente.PRODUTO}&SN=${data}`)
+        .then(({ data }) => {
+          setLoading(false)
+          setOpenCameraReader(null)
+          setSelectedPendente({...selectedPendente, ...data})
+          setLoading(true);
+          setBuscarPor('numserie')
+          Alert.alert('Atenção!','Este produto ainda não possui número de série.\nPor favor, bipe a etiqueta do número de série do produto.',[
+            {
+              title: 'ok',
+              onPress: () => setOpenCameraReader({ ETIQUETA: 'S/N do produto' })
+            }
+          ])
+        })
+        setSelectedPendente({...selectedPendente, NUMSERIE: data })
+        setOpenCameraReader(null)
+      }
+      setLoading(false);
+    } else if(buscarPor === 'ean') {
+      axios.get(`/wIbanezEan?EAN=${data}`)
+      .then(({ data }) => {
+        setLoading(false)
+        setOpenCameraReader(null)
+        setSelectedPendente({...selectedPendente, ...data})
+        setLoading(true);
+        setBuscarPor('numserie')
+        Alert.alert('Atenção!','Este produto ainda não possui número de série.\nPor favor, bipe a etiqueta do número de série do produto.',[
+          {
+            title: 'ok',
+            onPress: () => setOpenCameraReader({ ETIQUETA: 'S/N do produto' })
+          }
+        ])
+      })
+      .catch((error) => {
+        setOpenCameraReader(null)
+        if (error) {
+          if(error.message?.includes('401')) {
+            Alert.alert('Atenção', 'Timeout de conexão.')
+            navigation.popToTop()
+            navigation.push('Login')
+          } else {
+            Alert.alert('Atenção', error.message)
+          }
+          setLoading(false)
+        }
+      })
     } else {
       setLoading(false);
     }
   };
 
+  function handleMotivo(index) {
+    const motivosSelecionados = [...selectedPendente.MOTIVO];
+    const novoMotivoSelecionado = motivos[index].CHAVE.trim();
+    if(motivosSelecionados.indexOf(novoMotivoSelecionado) > -1) {
+      motivosSelecionados.splice(motivosSelecionados.indexOf(novoMotivoSelecionado), 1);
+    } else {
+      motivosSelecionados.push(novoMotivoSelecionado)
+    }
+
+
+    setSelectedPendente({...selectedPendente, MOTIVO: motivosSelecionados })
+  }
+
   async function handleInspecao() {
-    console.log({motivo,emConformidade})
     setLoading(true)
-    if(!motivo && !emConformidade) {
+    if(!selectedPendente.OBSERVACOES && selectedPendente.CONFORMIDADE === 'N') {
       setLoading(false)
       Alert.alert("Atenção!","Obrigatório relatar os problemas encontrados.")
+      return false
+    }
+    if(!selectedPendente.NUMSERIE) {
+      setLoading(false)
+      Alert.alert("Atenção!","Obrigatório bipar a etiqueta com número de série.",[
+        {
+          title: 'ok',
+          onPress: () => {
+            setBuscarPor('numserie');
+            setOpenCameraReader(selectedPendente);
+            return false
+          }
+        }
+      ])
       return false
     }
     const body = {
       Produto: selectedPendente.PRODUTO,
       NumSerie: selectedPendente.NUMSERIE,
-      Aprovado: emConformidade ? "S" : "N",
-      Motivo: motivo,
-      BloqVenda: blockSale ? "S" : "N"
+      Etiqueta: selectedPendente.ETIQUETA,
+      Motivo: selectedPendente.MOTIVO && selectedPendente.MOTIVO.length > 0 ? selectedPendente.MOTIVO.join() : '',
+      BloqVenda: selectedPendente.CONFORMIDADE === 'S' ? 'N' : selectedPendente.BLOQVENDA,
+      Conformidade: selectedPendente.CONFORMIDADE,
+      Observacoes: selectedPendente.OBSERVACOES
     }
     try {
       axios
-        .post(`${API_URL}/rest/wIbanez`, body, {
-          headers: {
-            Authorization: `Bearer ${user?.access_token}`,
-          },
-        })
+        .post(`/wIbanez`, body)
         .then(({ data }) => {
           if(data.Status === 200) {
             setLoading(false)
+            Alert.alert("Atenção!",data.Message)
             drawer.current.closeDrawer()
             setSelectedPendente(null)
           } else {
             Alert.alert("Atenção!",data.Message)
             setLoading(false)
           }
+        }).catch((error) => {
+          Alert.alert('Atenção!',error.message)
         })
     } catch(err) {
+      Alert.alert("Atenção!",err.Message)
       console.log(err)
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    axios
-      .get(`${API_URL}/rest/wIbanez`, {
-        headers: {
-          Authorization: `Bearer ${user?.access_token}`,
-        },
-      })
+    async function buscaPendentes() {
+      await axios
+      .get(`/wIbanez`)
       .then((response) => {
         setPendentes(response.data.RESULTADOS)
+        setMotivos(response.data.MOTIVOS)
         setLoading(false)
       })
       .catch((error) => {
         if (error) {
-          console.warn(error)
+          if(error.message?.includes('401')) {
+            Alert.alert('Atenção', 'Timeout de conexão.')
+            navigation.popToTop()
+            navigation.push('Login')
+          }
           setLoading(false)
         }
       })
+    }
+    buscaPendentes()
   }, [selectedPendente])
 
   const renderItem = ({item}) => {
@@ -132,54 +229,101 @@ export default function Ibanez({ navigation }) {
     return (
       <Item
         item={item}
-        onPress={() => setOpenCameraReader(item)}
+        onPress={() => {
+          setBuscarPor('etiqueta')
+          setOpenCameraReader(item)
+        }}
       />
     );
   };
+
+  function handlePrint() {
+    Alert.alert('Atenção!','Deseja realmente imprimir a etiqueta de número de série?',[
+      {
+        text: 'Sim',
+        isPreferred: true,
+        onPress: () => {
+          console.log('Imprimindo...')
+        }
+      },{
+        text: 'Não',
+        onPress: () => {
+          return false
+        }
+      }
+    ])
+  }
+
+  function handleEAN() {
+    setBuscarPor('ean')
+    setOpenCameraReader({ ETIQUETA: 'EAN do produto' })
+  }
 
   const navigationView = () => (
     <View style={[styles.container, styles.navigationContainer]}>
       { selectedPendente ?
       <ScrollView>
         <View style={{ backgroundColor: "#FFF", padding: 16 }}>
-          <Image source={{ uri: selectedPendente.PRODUTOOBJ.IMAGEMGRANDE}} style={{ width: 284, height: 284 }} />
+          { selectedPendente.PRODUTOOBJ && <Image source={{ uri: selectedPendente.PRODUTOOBJ.IMAGEMGRANDE}} style={{ width: 284, height: 284 }} />}
           <Pressable style={{ position: 'absolute', top: 25, left: 10, padding: 4, flexDirection: 'row', alignItems: 'center', backgroundColor: "#efefef", borderRadius: 8 }} onPress={() => drawer.current.closeDrawer()}>
             <Icon name="chevron-back-outline" size={18} color="#868686" /><Text style={{ fontSize: 12, color: "#868686" }}>Cancelar</Text>
           </Pressable>
+          <Pressable style={{ position: 'absolute', top: 25, right: 10, paddingVertical: 4, paddingHorizontal: 8, gap: 4, flexDirection: 'row', alignItems: 'center', backgroundColor: "#222", borderRadius: 8 }} onPress={handlePrint}>
+            <Icon name="print-outline" size={18} color="#fff" /><Text style={{ fontSize: 12, color: "#fff" }}>Etiq. Nº Série</Text>
+          </Pressable>
           <View style={{ position: 'absolute', bottom: 25, right: 10, backgroundColor: "#FFF", padding: 4, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#efefef', borderRadius: 8 }}>
             <Icon name="barcode-outline" color="#111" size={18} />
-            <Text style={{ textAlign: 'center', color: "#111", fontSize: 12 }}>{selectedPendente.NUMSERIE}</Text>
+            <Text style={{ textAlign: 'center', color: "#111", fontSize: 12 }}>{selectedPendente.ETIQUETA}</Text>
           </View>
         </View>
 
         <View style={{ paddingVertical: 8, backgroundColor: "#FFF", borderBottomWidth: 1 }}>
           <Text style={{ textAlign: 'center', color: "#111" }}>Revisão: <Text style={{ fontWeight: 'bold' }}>{selectedPendente.PROXIMAREVISAO}</Text> - Validade: <Text style={{ fontWeight: 'bold' }}>{selectedPendente.PROXIMAVIGENCIA}</Text></Text>
         </View>
+        <View style={{ paddingVertical: 8, backgroundColor: "#FFF", borderBottomWidth: 1 }}>
+          <Text style={{ textAlign: 'center', color: "#111" }}>Nº Série: <Text style={{ fontWeight: 'bold' }}>{selectedPendente.NUMSERIE}</Text></Text>
+        </View>
+        
 
         <View style={{ backgroundColor: "#efefef" }}>
-          <Pressable onPress={() => setEmConformidade(true)} style={{ padding: 16, backgroundColor: emConformidade ? colors["green-300"] : colors["gray-50"], borderBottomWidth: 1, borderColor: "#ccc"  }}>
+          <Pressable onPress={() => setSelectedPendente({...selectedPendente, CONFORMIDADE: 'S' })} style={{ padding: 16, backgroundColor: selectedPendente.CONFORMIDADE === 'S' ? colors["green-300"] : colors["gray-50"], borderBottomWidth: 1, borderColor: "#ccc"  }}>
             <Text style={{ textAlign: 'center', fontWeight: 'bold' }}>Em Conformidade</Text>
           </Pressable>
-          <Pressable onPress={() => setEmConformidade(false)} style={{ padding: 16, backgroundColor: !emConformidade ? colors["red-300"] : colors["gray-50"], borderBottomWidth: 1, borderColor: "#ccc" }}>
-            <Text style={{ textAlign: 'center', fontWeight: 'bold', color: !emConformidade ? "#FFF" : "#111" }}>Apresentou Problemas</Text>
+          <Pressable onPress={() => setSelectedPendente({...selectedPendente, CONFORMIDADE: 'N' })} style={{ padding: 16, backgroundColor: selectedPendente.CONFORMIDADE === 'N' ? colors["red-300"] : colors["gray-50"], borderBottomWidth: 1, borderColor: "#ccc" }}>
+            <Text style={{ textAlign: 'center', fontWeight: 'bold', color: selectedPendente.CONFORMIDADE === 'N' ? "#FFF" : "#111" }}>Apresentou Problemas</Text>
           </Pressable>
 
-          { !emConformidade && <Pressable onPress={() => setBlockSale(!blockSale)} style={{ marginTop: 12, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8 }}>
+          <View style={{ flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', paddingLeft: 32 }}>
+          { selectedPendente.CONFORMIDADE === 'N' && <Pressable onPress={() => setSelectedPendente({...selectedPendente, BLOQVENDA: selectedPendente.BLOQVENDA != 'S' ? 'S' : 'N' })} style={{ marginTop: 12, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8 }}>
             <View style={{ width: 24,height: 24, borderWidth: 1, borderColor: "#868686",flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
-              {blockSale && <Icon name="checkmark-outline" size={20} color="#f00" />}
+              {selectedPendente.BLOQVENDA === 'S' && <Icon name="checkmark-outline" size={20} color="#f00" />}
             </View>
             <Text>O problema impossibilita a venda</Text>
           </Pressable>}
 
+          { selectedPendente.CONFORMIDADE === 'N' && <Text style={{ marginTop: 32, fontSize: 18 }}>Motivos:</Text>}
+
+          { selectedPendente.CONFORMIDADE === 'N' ? 
+          motivos.map((motivo, index) => {
+            return <TouchableOpacity key={index} onPress={() => handleMotivo(index)} style={{ marginTop: 12, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8 }}>
+            <View style={{ width: 24,height: 24, borderWidth: 1, borderColor: "#868686",flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+              {selectedPendente.MOTIVO?.includes(motivo.CHAVE.trim()) && <Icon name="checkmark-outline" size={20} color="#f00" />}
+            </View>
+            <Text>{motivo.CHAVE.trim()} - {motivo.DESCRICAO}</Text>
+          </TouchableOpacity>
+          })
+          : null}
+          </View>
+
           <Text style={{ marginLeft: 16, marginTop: 32, color: "#868686", fontWeight: 'bold'}}>Problemas:</Text>
-          <TextInput onChangeText={setMotivo} multiline={true} numberOfLines={3} style={{ padding: 16, borderWidth: 1, margin: 16, borderColor: "#ccc" }} />
+          <TextInput onChangeText={Observacoes => setSelectedPendente({...selectedPendente, OBSERVACOES: Observacoes })} multiline={true} numberOfLines={3} style={{ padding: 16, borderWidth: 1, margin: 16, borderColor: "#ccc" }} />
         </View>
 
-        <Pressable
+        <TouchableOpacity
           onPress={handleInspecao}
           style={{ padding: 16, backgroundColor: colors["gray-100"] }}>
           <Text style={{ textAlign: 'center', color: "#111", fontWeight: 'bold' }}>Finalizar Inspeção</Text>
-        </Pressable>
+        </TouchableOpacity>
       </ScrollView>
       : null }
     </View>
@@ -201,7 +345,7 @@ export default function Ibanez({ navigation }) {
         <DrawerLayoutAndroid
           ref={drawer}
           drawerWidth={300}
-          drawerPosition={drawerPosition}
+          drawerPosition={'right'}
           drawerLockMode="locked-closed"
           onDrawerClose={() => setSelectedPendente(null)}
           renderNavigationView={navigationView}>
@@ -234,7 +378,7 @@ export default function Ibanez({ navigation }) {
 
                                     <View style={{ position: 'absolute', bottom: 0, backgroundColor: "rgba(0,0,0,.3)", width: RFPercentage(45), flexDirection: 'row', justifyContent: 'center', gap: 8, alignItems: 'center' }}>
                                       <Icon name="barcode-outline" color="#FFF" size={28} />
-                                      <Text style={{ color: "#fff", fontSize: 14, textAlign: 'center' }}><Text style={{ fontSize: 18, fontWeight: 'bold' }}>{openCameraReader.NUMSERIE}</Text></Text>
+                                      <Text style={{ color: "#fff", fontSize: 14, textAlign: 'center' }}><Text style={{ fontSize: 18, fontWeight: 'bold' }}>{openCameraReader.ETIQUETA}</Text></Text>
                                     </View>
                                 </View>
                             </View>
@@ -242,16 +386,24 @@ export default function Ibanez({ navigation }) {
                     </KeyboardAvoidingView>
                 </View>
             </Modal> : null }
-            { pendentes?.length > 0 ?
-            <FlatList data={pendentes}
-              renderItem={renderItem}
-              keyExtractor={item => item.NUMSERIE}
-              extraData={selectedPendente} style={{ flex: 1 }} />
-              :
-              <View style={{ backgroundColor:"#FFF", borderRadius: 8, padding: 8, width: 200 }}>
-                <Text style={{ textAlign: 'center' }}>Não há produtos pendentes de inspeção no momento.</Text>
-              </View>
-              }
+            <View style={{ flexDirection: 'column', flex: 1, justifyContent: 'flex-start', alignItems: 'center', marginTop: 32, gap: 16 }}>
+              { !loading && <TouchableOpacity onPress={handleEAN} style={{ backgroundColor: ambiente === 'producao' ? colors['green-300'] : colors['blue-300'], borderRadius: 16, paddingVertical: 16, paddingHorizontal: 32, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                <>
+                  <Icon name='scan-outline' color="#FFF" size={28} />
+                  <Text style={{ color: ambiente === 'producao' ? '#111' : '#fff', fontWeight: 'bold' }}>Inspecionar novo produto</Text>
+                </>
+              </TouchableOpacity>}
+              {pendentes?.length > 0 && <FlatList data={pendentes}
+                renderItem={renderItem}
+                keyExtractor={item => item.ETIQUETA}
+                extraData={selectedPendente} style={{ flex: 1, width: '100%' }} />}
+              { loading && <View style={{ backgroundColor:"#FFF", borderRadius: 8, padding: 8, width: 200 }}>
+                <Text style={{ textAlign: 'center' }}>Buscando...</Text>
+              </View>}
+              {pendentes?.length === 0 && !loading && <View style={{ backgroundColor:"#FFF", borderRadius: 8, padding: 8, width: 200 }}>
+                <Text style={{ textAlign: 'center' }}>Não há produtos com inspeção perto da data de vencimento.</Text>
+              </View>}
+            </View>
           </View>
         </DrawerLayoutAndroid>
         
@@ -279,18 +431,19 @@ const Item = ({item, onPress}) => (
     <View style={{ padding: 8, backgroundColor: "#EFEFEF", flexDirection: 'row', justifyContent: 'justify-content', gap: 8, alignItems: 'center' }}>
       <View style={{ flexDirection: 'row', marginLeft: 16, justifyContent: 'flex-start', gap: 8, alignItems: 'center', flex: 1 }}>
         <Icon name="barcode-outline" color="#111" size={24} />
-        <Text style={{ color: "#111", fontSize: 14, textAlign: 'center' }}><Text style={{ fontSize: 16, fontWeight: 'bold' }}>{item.NUMSERIE}</Text></Text>
+        <Text style={{ color: "#111", fontSize: 14, textAlign: 'center' }}><Text style={{ fontSize: 16, fontWeight: 'bold' }}>{item.ETIQUETA}</Text></Text>
       </View>
       <Icon name="chevron-forward-outline" color="#111" size={24} />
     </View>
-
     <View style={{ paddingHorizontal: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
-      <View style={{ padding: 8, borderRadius: 8 }}>
+      {item.PROXIMAREVISAO ? <View style={{ padding: 8, borderRadius: 8 }}>
         <Text style={{ color: "#111", fontSize: 14 }}>Última Revisão: <Text style={{ color: colors["green-300"], fontSize: 18, fontWeight: 'bold' }}>{item.REVISAO}</Text></Text>
-      </View>
-      <View style={{ padding: 8, borderRadius: 8 }}>
+      </View> : <View style={{ padding: 8, borderRadius: 8 }}>
+        <Text style={{ color: "#111", fontSize: 14 }}>Produto ainda não inspecionado.</Text>
+      </View>}
+      {item.PROXIMAREVISAO && <View style={{ padding: 8, borderRadius: 8 }}>
         <Text style={{ color: "#111", fontSize: 14 }}>Validade. <Text style={{ color: colors["green-300"], fontSize: 18, fontWeight: 'bold' }}>{item.VIGENCIA}</Text></Text>
-      </View>
+      </View>}
     </View>
 
   </TouchableOpacity>

@@ -16,7 +16,6 @@ import { Controller, useForm } from 'react-hook-form'
 import * as Yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import axios from 'axios'
-import { API_URL } from '../../../../config'
 import { useUser } from '../../../hooks/user'
 import { useState } from 'react'
 import Icon from 'react-native-vector-icons/Ionicons'
@@ -52,13 +51,7 @@ export default function Transferencia({ navigation }) {
     const Endereco = code.substring(2)
 
     axios
-      .get(`${API_URL}/rest/wBuscaEnd`, {
-        headers: {
-          Authorization: `Bearer ${user?.access_token}`,
-          Armazem,
-          Endereco,
-        },
-      })
+      .get(`/wBuscaEnd?Armazem=${Armazem}&Endereco=${Endereco}`)
       .then((response) => {
         const data = response.data
 
@@ -77,12 +70,7 @@ export default function Transferencia({ navigation }) {
   const onCodeProductScanned = (code) => {
     setLoading(true)
     axios
-      .get(`${API_URL}/rest/wBuscaEtiq`, {
-        headers: {
-          Authorization: `Bearer ${user?.access_token}`,
-          Etiqueta: code,
-        },
-      })
+      .get(`/wBuscaEtiq?Etiqueta=${code}`)
       .then((response) => {
         const data = response.data
 
@@ -116,17 +104,9 @@ export default function Transferencia({ navigation }) {
     const Endereco = code.substring(2)
 
     axios
-      .get(`${API_URL}/rest/wBuscaEnd`, {
-        headers: {
-          Authorization: `Bearer ${user?.access_token}`,
-          Armazem,
-          Endereco,
-        },
-      })
+      .get(`/wBuscaEnd?Armazem=${Armazem}&Endereco=${Endereco}`)
       .then((response) => {
         const data = response.data
-
-        console.log(data)
         setProduct({ ...product, ENDERECODESTINO: data.ENDERECO, ARMAZEMDESTINO: data.ARMAZEM })
         setOpenDestinationScanner(false)
         setLoading(false)
@@ -149,11 +129,7 @@ export default function Transferencia({ navigation }) {
       endereco_destino: product.ENDERECODESTINO,
     }
     axios
-      .post(`${API_URL}/rest/wTransferir`, body, {
-        headers: {
-          Authorization: `Bearer ${user?.access_token}`,
-        },
-      })
+      .post(`/wTransferir`, body)
       .then((response) => {
         Alert.alert('Atenção!','Transferência realizada com sucesso.', [
           {

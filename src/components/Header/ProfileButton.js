@@ -4,7 +4,7 @@ import { colors } from "../../styles/colors";
 
 export default function ProfileButton({ setOpenProfile }) {
     return (
-    <TouchableOpacity style={{ marginRight: 16 }} onPress={() => setOpenProfile(true)}>
+    <TouchableOpacity style={{ marginRight: 8, padding: 8 }} onPress={() => setOpenProfile(true)}>
         <Icon name="person-circle-outline" size={24} color={colors['gray-500']} />
     </TouchableOpacity>
     )

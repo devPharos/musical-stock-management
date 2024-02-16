@@ -9,21 +9,16 @@ import { colors } from '../../styles/colors'
 import Header from '../../components/header'
 import { useEffect, useState } from 'react'
 import axios from 'axios'
-import { API_URL } from '../../../config'
 import { useUser } from '../../hooks/user'
 import { PrinterCardItem } from '../../components/printerCardItem'
 
 export default function PrinterSelection({ navigation }) {
-  const { user, selectedPrinter } = useUser()
+  const { user, selectedPrinter, baseURL } = useUser()
   const [printers, setPrinters] = useState([])
 
   useEffect(() => {
     axios
-      .get(`${API_URL}/rest/wPrinter`, {
-        headers: {
-          Authorization: `Bearer ${user?.access_token}`,
-        },
-      })
+      .get(`/wPrinter`)
       .then((response) => {
         const availablePrinters = response.data.impressoras
         setPrinters(availablePrinters)

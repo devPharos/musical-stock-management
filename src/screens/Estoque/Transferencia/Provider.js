@@ -5,9 +5,11 @@ import Icon from 'react-native-vector-icons/Ionicons'
 import { TransferenciaProvider } from '../../../hooks/transferencia'
 import Transferencia from '.'
 import ConfirmacaoTransf from './Confirmacao'
+import { useUser } from '../../../hooks/user'
 const Stack = createNativeStackNavigator()
 
 export default function TransferenciaRProvider({ navigation }) {
+  const { ambiente } = useUser();
   return (
     <TransferenciaProvider>
       <Stack.Navigator
@@ -15,7 +17,7 @@ export default function TransferenciaRProvider({ navigation }) {
         screenOptions={{
           headerBackTitleVisible: false,
           headerTintColor: colors['gray-500'],
-          headerStyle: { backgroundColor: colors['green-300'] },
+          headerStyle: { backgroundColor: ambiente === 'producao' ? colors['green-300'] : colors['blue-300'] },
         }}
       >
         <Stack.Screen

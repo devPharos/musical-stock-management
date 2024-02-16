@@ -17,11 +17,10 @@ import {
   import { useRef, useState } from 'react'
   import Scanner from '../../../components/scanner'
   import axios from 'axios'
-  import { API_URL } from '../../../../config'
   import { useUser } from '../../../hooks/user'
   export default function ConsultaEndereco() {
   
-    const { user } = useUser()
+    const { user, baseURL } = useUser()
     const [ endereco, setEndereco ] = useState(null)
     const [openProductScanner, setOpenProductScanner] = useState(false)
     const [loading, setLoading] = useState(false)
@@ -32,12 +31,7 @@ import {
       setLoading(true)
   
       axios
-        .get(`${API_URL}/rest/wBuscaProd`, {
-          headers: {
-            Authorization: `Bearer ${user?.access_token}`,
-            Produto: find,
-          },
-        })
+        .get(`/wBuscaProd?Produto=${find}`)
         .then((response) => {
           setLoading(false)
   

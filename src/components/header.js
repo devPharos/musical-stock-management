@@ -11,19 +11,17 @@ export default function Header({
   const navigation = useNavigation()
 
   return (
-    <View style={styles.container}>
+    <Pressable onPress={() => navigation?.goBack()} style={styles.container}>
       {hasGoBackAction ? (
         <>
-          <Pressable onPress={() => navigation?.goBack()}>
             <Icon name="arrow-back" size={20} color={colors['gray-500']} />
-          </Pressable>
         </>
       ) : (
         <View />
       )}
       <Text style={styles.label}>{label}</Text>
       <Icon name="cog-outline" size={20} color={colors['gray-500']} />
-    </View>
+    </Pressable>
   )
 }
 

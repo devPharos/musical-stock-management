@@ -18,7 +18,6 @@ import { useEffect, useState } from 'react'
 import PrinterButton from '../../../../components/PrinterButton'
 import { useUser } from '../../../../hooks/user'
 import axios from 'axios'
-import { API_URL } from '../../../../../config'
 import { useConference } from '../../../../hooks/conference'
 import { BarCodeScanner } from 'expo-barcode-scanner'
 import { RFPercentage } from 'react-native-responsive-fontsize'
@@ -109,11 +108,7 @@ export function Items({ navigation }) {
       }
 
       axios
-        .post(`${API_URL}/rest/wConfereNF`, body, {
-          headers: {
-            Authorization: `Bearer ${user?.access_token}`,
-          },
-        })
+        .post(`/wConfereNF`, body)
         .then((response) => {
           if (response.status === 200) {
             selectedInvoices.forEach(inv => {

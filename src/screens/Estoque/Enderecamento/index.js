@@ -9,7 +9,6 @@ import {
 import { colors } from '../../../styles/colors'
 import Scanner from '../../../components/scanner'
 import axios from 'axios'
-import { API_URL } from '../../../../config'
 import { useUser } from '../../../hooks/user'
 import { useState } from 'react'
 import Icon from 'react-native-vector-icons/Ionicons'
@@ -17,7 +16,7 @@ import { useNavigation } from '@react-navigation/native'
 import { useEnderecamento } from '../../../hooks/enderecamento'
 
 export default function Enderecamento() {
-  const { user } = useUser()
+  const { user, baseURL } = useUser()
   const { setAddressing, addressing, endereco, setEndereco } =
     useEnderecamento()
   const [openProductScanner, setOpenProductScanner] = useState(false)
@@ -28,12 +27,7 @@ export default function Enderecamento() {
 
   const onCodeProductScanned = (code) => {
     axios
-      .get(`${API_URL}/rest/wBuscaEtiq`, {
-        headers: {
-          Authorization: `Bearer ${user?.access_token}`,
-          Etiqueta: code,
-        },
-      })
+      .get(`/wBuscaEtiq?Etiqueta=${code}`)
       .then((response) => {
         const data = response.data
 
@@ -60,13 +54,7 @@ export default function Enderecamento() {
     const Endereco = code.substring(2)
 
     axios
-      .get(`${API_URL}/rest/wBuscaEnd`, {
-        headers: {
-          Authorization: `Bearer ${user?.access_token}`,
-          Armazem,
-          Endereco,
-        },
-      })
+      .get(`/wBuscaEnd?Armazem=${Armazem}&Endereco=${Endereco}`)
       .then((response) => {
         const data = response.data
         const enderc = {

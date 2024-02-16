@@ -1,3 +1,4 @@
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 import {
   StyleSheet,
   Text,
@@ -11,50 +12,59 @@ import {
   Platform,
   TouchableWithoutFeedback,
   Keyboard,
+  Alert,
+  TouchableOpacity,
+  StatusBar
 } from 'react-native'
 import { colors } from '../../styles/colors'
 import Icon from 'react-native-vector-icons/Ionicons'
 import { Controller, useForm } from 'react-hook-form'
 import * as Yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { API_URL } from '../../../config'
+import { API_URL, API_TST_URL } from '../../../config'
 import axios from 'axios'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useUser } from '../../hooks/user'
 
 export default function Login({ navigation }) {
   const [credentialsError, setCredentialsError] = useState(false)
   const [passwordVisibility, setPasswordVisibility] = useState(false)
   const [loading, setLoading] = useState(false)
-  const { user, setUser, APP_VERSION } = useUser()
+  const { user, setUser, APP_VERSION, ambiente, setAmbiente, baseURL, setBaseURL } = useUser()
 
   const logInFormSchema = Yup.object().shape({
       username: Yup.string().required('Digite seu usuário.'),
       password: Yup.string().required('Digite sua senha.')
   })
 
+  function handleAmbiente() {
+    const varAmbiente = ambiente === 'producao' ? 'teste' : 'producao';
+    setAmbiente(varAmbiente)
+    setBaseURL(varAmbiente === 'producao' ? API_URL : API_TST_URL);
+  }
+
   const { control,handleSubmit,formState: { errors } } = useForm({ values: { username: 'pharos', password: 'Phr@2023'}, resolver: yupResolver(logInFormSchema) });
 
   const handleLogin = async ({ username, password }) => {
-    axios
-      .post(`${API_URL}/rest/api/oauth2/v1/token`, null, {
+    try {
+      await axios
+      .post(`${baseURL}/api/oauth2/v1/token`, null, {
         params: {
           grant_type: 'password',
           username: username.toLowerCase(),
           password,
         },
       })
-      .then((response) => {
+      .then(async (response) => {
         const newUser = {
           access_token: response.data.access_token,
           username: username.toLowerCase(),
         }
+        axios.defaults.baseURL = baseURL;
+        axios.defaults.headers.common['Authorization'] = `Bearer ${newUser.access_token}`;
 
-        axios
-          .get(`${API_URL}/rest/wMenus`, {
-            headers: {
-              Authorization: `Bearer ${newUser.access_token}`,
-            },
+        await axios
+          .get(`/wMenus`, {
           })
           .then(({ data }) => {
             setLoading(false)
@@ -70,12 +80,18 @@ export default function Login({ navigation }) {
           })
 
       })
-      .catch((error) => {
+      .catch(async (error) => {
         if (error) {
+          Alert.alert('Atenção!',error.message)
           setLoading(false)
           setCredentialsError(true)
         }
       })
+    } catch(err) {
+      setLoading(false)
+      Alert.alert('Atenção!', err.message)
+    }
+    
   }
 
   const onSubmit = (data) => {
@@ -87,7 +103,7 @@ export default function Login({ navigation }) {
     <View style={styles.container}>
       <ImageBackground
         style={styles.headerImageContainer}
-        source={require('../../assets/background.png')}
+        source={ambiente === 'producao' ? require('../../assets/background.png') : require('../../assets/background-teste.png')}
       >
         <Image
           style={styles.image}
@@ -95,6 +111,7 @@ export default function Login({ navigation }) {
           alt=""
         />
       </ImageBackground>
+      {ambiente === 'teste' && <StatusBar translucent backgroundColor={colors['blue-300']} />}
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -196,14 +213,27 @@ export default function Login({ navigation }) {
               </Text>
             )}
 
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
+            <TouchableOpacity style={{ paddingHorizontal: 24, paddingVertical: 16, borderRadius: 30, backgroundColor: colors['gray-50'], borderWidth: 1, borderColor: '#ccc', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 }} onPress={handleAmbiente}>
+              <>
+                <Icon
+                  name="construct-outline"
+                  color={colors['gray-500']}
+                  size={20}
+                  onPress={() => setPasswordVisibility(true)}
+                />
+                <Text>{ambiente.toUpperCase()}</Text>
+              </>
+            </TouchableOpacity>
             <Pressable
               disabled={loading}
-              style={styles.buttonContainer}
+              style={ambiente === 'producao' ? styles.buttonContainer : styles.buttonContainerTest}
               onPress={handleSubmit(onSubmit)}
             >
               {loading && <ActivityIndicator color={colors.white} />}
               <Text style={styles.buttonLabel}>ACESSAR</Text>
             </Pressable>
+            </View>
             <Text style={styles.versionText}>Versão {APP_VERSION}</Text>
           </>
         </TouchableWithoutFeedback>
@@ -279,6 +309,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
     backgroundColor: colors['green-300'],
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    borderRadius: 30,
+    alignItems: 'center',
+  },
+  buttonContainerTest: {
+    flexDirection: 'row',
+    gap: 8,
+    backgroundColor: colors['blue-300'],
     paddingHorizontal: 24,
     paddingVertical: 16,
     borderRadius: 30,

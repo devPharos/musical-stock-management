@@ -14,12 +14,11 @@ import React from 'react'
 import Icon from 'react-native-vector-icons/Ionicons'
 import { useNavigation } from '@react-navigation/native'
 
-import { API_URL } from '../../../../../config'
 import { useTransferencia } from '../../../../hooks/transferencia'
 
 export default function ConfirmacaoTransf() {
 
-  const { user } = useUser()
+  const { user, baseURL } = useUser()
   const { destinationAddress, originAddress, product } = useTransferencia()
 
   const handleEndConference = async () => {
@@ -32,11 +31,7 @@ export default function ConfirmacaoTransf() {
     }
     // console.log(body)
     axios
-      .post(`${API_URL}/rest/wTransferir`, body, {
-        headers: {
-          Authorization: `Bearer ${user?.access_token}`,
-        },
-      })
+      .post(`/wTransferir`, body)
       .then((response) => {
         console.log({response})
         // navigation.navigate('Dashboard')

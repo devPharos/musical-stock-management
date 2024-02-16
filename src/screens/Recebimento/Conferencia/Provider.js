@@ -5,9 +5,11 @@ import { Items } from './Items'
 import { colors } from '../../../styles/colors'
 import { TouchableOpacity } from 'react-native'
 import Icon from 'react-native-vector-icons/Ionicons'
+import { useUser } from '../../../hooks/user'
 const Stack = createNativeStackNavigator()
 
 export default function ConferenciaRootProvider({ navigation }) {
+  const { ambiente } = useUser();
   return (
     <ConferenceProvider>
       <Stack.Navigator
@@ -15,7 +17,7 @@ export default function ConferenciaRootProvider({ navigation }) {
         screenOptions={{
           headerBackTitleVisible: false,
           headerTintColor: colors['gray-500'],
-          headerStyle: { backgroundColor: colors['green-300'] },
+          headerStyle: { backgroundColor: ambiente === 'producao' ? colors['green-300'] : colors['blue-300'] },
         }}
       >
         <Stack.Screen

@@ -14,12 +14,11 @@ import React from 'react'
 import Icon from 'react-native-vector-icons/Ionicons'
 import { useNavigation } from '@react-navigation/native'
 import { useEnderecamento } from '../../../../hooks/enderecamento'
-import { API_URL } from '../../../../../config'
 
 export default function Confirmacao() {
   const navigation = useNavigation()
 
-  const { user } = useUser()
+  const { user,baseURL } = useUser()
   const { addressing, endereco } = useEnderecamento()
 
   const handleEndConference = () => {
@@ -29,11 +28,7 @@ export default function Confirmacao() {
       endereco: endereco.ENDERECO,
     }
     axios
-      .post(`${API_URL}/rest/wEnderecar`, body, {
-        headers: {
-          Authorization: `Bearer ${user?.access_token}`,
-        },
-      })
+      .post(`/wEnderecar`, body)
       .then(() => {
         navigation.navigate('Dashboard')
       })

@@ -18,7 +18,6 @@ import { useEffect, useState } from 'react'
 import PrinterButton from '../../../../components/PrinterButton'
 import { useUser } from '../../../../hooks/user'
 import axios from 'axios'
-import { API_URL } from '../../../../../config'
 import { useConference } from '../../../../hooks/conference'
 import { BarCodeScanner } from 'expo-barcode-scanner'
 import { RFPercentage } from 'react-native-responsive-fontsize'
@@ -29,7 +28,7 @@ export function Items({ navigation }) {
   const [hasPermission, setHasPermission] = useState(null);
   const [loading, setLoading] = useState(false)
   const { selectedInvoices, invoiceItems, handleModifySelectedInvoices } = useConference()
-  const { user, selectedPrinter } = useUser()
+  const { user, selectedPrinter, baseURL } = useUser()
   const [allItemsWereConferred, setAllItemsWereConferred] = useState(false)
   const [printerNotSelected, setPrinterNotSelected] = useState(false)
   const [openQuantityInform, setOpenQuantityInform] = useState(null)
@@ -110,11 +109,7 @@ export function Items({ navigation }) {
       }
 
       axios
-        .post(`${API_URL}/rest/wConfereNF`, body, {
-          headers: {
-            Authorization: `Bearer ${user?.access_token}`,
-          },
-        })
+        .post(`/wConfereNF`, body)
         .then((response) => {
           if (response.status === 200) {
             selectedInvoices.forEach(inv => {

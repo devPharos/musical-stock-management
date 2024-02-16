@@ -16,12 +16,11 @@ import { ReceiptCard } from '../../../components/receiptCard'
 import Icon from 'react-native-vector-icons/Ionicons'
 import { useEffect, useState } from 'react'
 import axios from 'axios'
-import { API_URL } from '../../../../config'
 import { useUser } from '../../../hooks/user'
 import { useConference } from '../../../hooks/conference'
 
 export default function Conferencia({ navigation }) {
-  const { user } = useUser()
+  const { user, baseURL } = useUser()
   const { selectedInvoices } = useConference()
   const [loading, setLoading] = useState(true)
 
@@ -29,11 +28,7 @@ export default function Conferencia({ navigation }) {
 
   useEffect(() => {
     axios
-      .get(`${API_URL}/rest/wBuscaNF`, {
-        headers: {
-          Authorization: `Bearer ${user?.access_token}`,
-        },
-      })
+      .get(`/wBuscaNF`)
       .then((response) => {
         setInvoices(response.data.notas)
         setLoading(false)

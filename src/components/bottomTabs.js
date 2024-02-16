@@ -1,12 +1,9 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
-
-import Recebimento from '../screens/Recebimento'
-import Estoque from '../screens/Estoque'
 import Icon from 'react-native-vector-icons/Ionicons'
 import { colors } from '../styles/colors'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { Platform, StatusBar, View, StyleSheet, Text } from 'react-native'
+import { Platform, StyleSheet } from 'react-native'
 import { useUser } from '../hooks/user'
+import Rotina from '../screens/Rotina'
 
 const Tab = createBottomTabNavigator()
 const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 50 : 15
@@ -17,13 +14,6 @@ export default function BottomTabs() {
 
   return (
     <>
-    <View
-      style={[styles.statusBar, { backgroundColor: colors['green-300'] }]}
-    >
-      <SafeAreaView>
-        <StatusBar translucent backgroundColor={colors['green-300']} />
-      </SafeAreaView>
-    </View>
     <Tab.Navigator
       initialRouteName="Recebimento"
       screenOptions={({ route }) => ({
@@ -66,7 +56,7 @@ export default function BottomTabs() {
       { user.menus.findIndex(menu => menu.CODIGO === '100') > -1 ?
       <Tab.Screen
         name="Recebimento"
-        component={Recebimento}
+        component={Rotina}
         initialParams={{menuIndex: user.menus.findIndex(menu => menu.CODIGO === '100')}}
         options={{ headerShown: false }}
       />
@@ -74,7 +64,7 @@ export default function BottomTabs() {
       { user.menus.findIndex(menu => menu.CODIGO === '200') > -1 ?
       <Tab.Screen
         name="Estoque"
-        component={Estoque}
+        component={Rotina}
         options={{ headerShown: false }}
         initialParams={{menuIndex: user.menus.findIndex(menu => menu.CODIGO === '200')}}
       />

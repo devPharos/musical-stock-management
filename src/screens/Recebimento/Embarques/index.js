@@ -5,34 +5,35 @@ import {
   ImageBackground,
   View,
   FlatList,
-  TouchableOpacity
+  TouchableOpacity,
+  Alert
 } from 'react-native'
 import { colors } from '../../../styles/colors'
 import { useEffect, useState } from 'react'
 import axios from 'axios'
-import { API_URL } from '../../../../config'
 import { useUser } from '../../../hooks/user'
 
 export default function Embarques({ navigation }) {
-  const { user } = useUser()
+  const { user, baseURL } = useUser()
   const [loading, setLoading] = useState(true)
   const [embarques, setEmbarques] = useState(null)
   const [selectedPedido, setSelectedPedido] = useState(null)
 
   useEffect(() => {
     axios
-      .get(`${API_URL}/rest/wIbanezPed?marca=0170`, {
-        headers: {
-          Authorization: `Bearer ${user?.access_token}`,
-        },
-      })
-      .then((response) => {
-        setEmbarques(response.data.PEDIDOS)
+      .get(`/wIbanezPed?marca=0170`)
+      .then(({ data }) => {
+        setEmbarques(data.PEDIDOS)
         setLoading(false)
       })
       .catch((error) => {
         if (error) {
-          console.warn(error)
+          console.warn(error.message)
+          if(error.message.includes('401')) {
+            Alert.alert('Atenção', 'Timeout de conexão.')
+            navigation.popToTop()
+            navigation.push('Login')
+          }
           setLoading(false)
         }
       })
@@ -55,10 +56,15 @@ export default function Embarques({ navigation }) {
         style={styles.content}
       >
         <View style={styles.container}>
-          <FlatList data={embarques}
+          { loading ? 
+            <View style={{ backgroundColor:"#FFF", borderRadius: 8, padding: 8, width: 200 }}>
+              <Text style={{ textAlign: 'center' }}>Buscando...</Text>
+            </View>
+          : <FlatList data={embarques}
             renderItem={renderItem}
             keyExtractor={item => item.PEDIDO}
             extraData={selectedPedido} style={{ flex: 1 }} />
+          }
         </View>
 
       </ImageBackground>
