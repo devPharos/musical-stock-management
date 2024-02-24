@@ -85,21 +85,12 @@ export default function Ibanez({ navigation }) {
         ])
       } else {
         axios.get(`/wIbanezEan?Produto=${selectedPendente.PRODUTO}&SN=${data}`)
-        .then(({ data }) => {
+        .then(({ data: retorno }) => {
+          console.log(data)
           setLoading(false)
           setOpenCameraReader(null)
-          setSelectedPendente({...selectedPendente, ...data})
-          setLoading(true);
-          setBuscarPor('numserie')
-          Alert.alert('Atenção!','Este produto ainda não possui número de série.\nPor favor, bipe a etiqueta do número de série do produto.',[
-            {
-              title: 'ok',
-              onPress: () => setOpenCameraReader({ ETIQUETA: 'S/N do produto' })
-            }
-          ])
+          setSelectedPendente({...selectedPendente, NUMSERIE: data })
         })
-        setSelectedPendente({...selectedPendente, NUMSERIE: data })
-        setOpenCameraReader(null)
       }
       setLoading(false);
     } else if(buscarPor === 'ean') {

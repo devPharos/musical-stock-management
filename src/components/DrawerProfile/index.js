@@ -25,8 +25,8 @@ export default function DrawerProfile({ navigation, mainMenu }) {
   ref={profileRef}
   drawerWidth={300}
   drawerPosition='left'
-  drawerLockMode="locked-closed"
   onDrawerClose={handleCloseDrawer}
+  unmountOnBlur={true}
   renderNavigationView={navigationView}>
   <StackNavigator mainMenu={mainMenu} setOpenProfile={setOpenProfile} />
 </DrawerLayoutAndroid></SafeAreaView>;

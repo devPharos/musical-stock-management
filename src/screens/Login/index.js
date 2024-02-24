@@ -51,14 +51,14 @@ export default function Login({ navigation }) {
       .post(`${baseURL}/api/oauth2/v1/token`, null, {
         params: {
           grant_type: 'password',
-          username: username.toLowerCase(),
+          username: username,
           password,
         },
       })
       .then(async (response) => {
         const newUser = {
           access_token: response.data.access_token,
-          username: username.toLowerCase(),
+          username: username,
         }
         axios.defaults.baseURL = baseURL;
         axios.defaults.headers.common['Authorization'] = `Bearer ${newUser.access_token}`;
@@ -71,7 +71,7 @@ export default function Login({ navigation }) {
             setUser({
               ...user,
               access_token: newUser.access_token,
-              username: newUser.username.toLowerCase(),
+              username: newUser.username,
               grupo: data.GRUPO,
               menus: data.MENUS,
               nome: data.NOME

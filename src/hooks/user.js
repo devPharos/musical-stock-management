@@ -11,7 +11,7 @@ export const UserContext = createContext(defaultUser)
 const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [selectedPrinter, setSelectedPrinter] = useState(null)
-  const APP_VERSION = '1.0.2'
+  const APP_VERSION = '1.0.4'
   const [ambiente, setAmbiente] = useState('producao')
   const [baseURL, setBaseURL] = useState(API_URL)
 
