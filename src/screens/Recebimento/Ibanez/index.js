@@ -27,12 +27,13 @@ import { RFPercentage } from 'react-native-responsive-fontsize'
 export default function Ibanez({ navigation }) {
   const [openCameraReader, setOpenCameraReader] = useState(null);
   const [hasPermission, setHasPermission] = useState(null);
-  const { ambiente } = useUser()
+  const { ambiente,refreshAuthentication, user } = useUser()
   const [loading, setLoading] = useState(true)
   const [pendentes, setPendentes] = useState(null)
   const [selectedPendente, setSelectedPendente] = useState(null)
   const [buscarPor, setBuscarPor] = useState('etiqueta')
   const [motivos, setMotivos] = useState(null)
+  const [printed, setPrinted] = useState(true)
 
   const drawer = useRef(null);
 
@@ -74,6 +75,7 @@ export default function Ibanez({ navigation }) {
       setLoading(false);
 
     } else if(buscarPor === 'numserie') {
+      setPrinted(false)
       setOpenCameraReader(null);
       setLoading(true);
       if(data === inCamera.ETIQUETA) {
@@ -86,7 +88,7 @@ export default function Ibanez({ navigation }) {
       } else {
         axios.get(`/wIbanezEan?Produto=${selectedPendente.PRODUTO}&SN=${data}`)
         .then(({ data: retorno }) => {
-          console.log(data)
+          //console.log(data)
           setLoading(false)
           setOpenCameraReader(null)
           setSelectedPendente({...selectedPendente, NUMSERIE: data })
@@ -112,9 +114,7 @@ export default function Ibanez({ navigation }) {
         setOpenCameraReader(null)
         if (error) {
           if(error.message?.includes('401')) {
-            Alert.alert('Atenção', 'Timeout de conexão.')
-            navigation.popToTop()
-            navigation.push('Login')
+            refreshAuthentication();
           } else {
             Alert.alert('Atenção', error.message)
           }
@@ -187,7 +187,7 @@ export default function Ibanez({ navigation }) {
         })
     } catch(err) {
       Alert.alert("Atenção!",err.Message)
-      console.log(err)
+      //console.log(err)
       setLoading(false)
     }
   }
@@ -204,16 +204,14 @@ export default function Ibanez({ navigation }) {
       .catch((error) => {
         if (error) {
           if(error.message?.includes('401')) {
-            Alert.alert('Atenção', 'Timeout de conexão.')
-            navigation.popToTop()
-            navigation.push('Login')
+            refreshAuthentication();
           }
           setLoading(false)
         }
       })
     }
     buscaPendentes()
-  }, [selectedPendente])
+  }, [selectedPendente, user.refresh_token])
 
   const renderItem = ({item}) => {
 
@@ -233,8 +231,10 @@ export default function Ibanez({ navigation }) {
       {
         text: 'Sim',
         isPreferred: true,
-        onPress: () => {
-          console.log('Imprimindo...')
+        onPress: async () => {
+          //console.log('Imprimindo...')
+          axios.get(`/wEtiqSN?produto=${selectedPendente.PRODUTO}&numserie=${selectedPendente.NUMSERIE}`)
+          setPrinted(true)
         }
       },{
         text: 'Não',
@@ -255,7 +255,7 @@ export default function Ibanez({ navigation }) {
       { selectedPendente ?
       <ScrollView>
         <View style={{ backgroundColor: "#FFF", padding: 16 }}>
-          { selectedPendente.PRODUTOOBJ && <Image source={{ uri: selectedPendente.PRODUTOOBJ.IMAGEMGRANDE}} style={{ width: 284, height: 284 }} />}
+          { selectedPendente.PRODUTOOBJ && <Image source={{ uri: selectedPendente.PRODUTOOBJ.IMAGEMGRANDE.replace('_main','_detail1')}} style={{ width: 300, height: 300 }} />}
           <Pressable style={{ position: 'absolute', top: 25, left: 10, padding: 4, flexDirection: 'row', alignItems: 'center', backgroundColor: "#efefef", borderRadius: 8 }} onPress={() => drawer.current.closeDrawer()}>
             <Icon name="chevron-back-outline" size={18} color="#868686" /><Text style={{ fontSize: 12, color: "#868686" }}>Cancelar</Text>
           </Pressable>
@@ -271,9 +271,18 @@ export default function Ibanez({ navigation }) {
         <View style={{ paddingVertical: 8, backgroundColor: "#FFF", borderBottomWidth: 1 }}>
           <Text style={{ textAlign: 'center', color: "#111" }}>Revisão: <Text style={{ fontWeight: 'bold' }}>{selectedPendente.PROXIMAREVISAO}</Text> - Validade: <Text style={{ fontWeight: 'bold' }}>{selectedPendente.PROXIMAVIGENCIA}</Text></Text>
         </View>
-        <View style={{ paddingVertical: 8, backgroundColor: "#FFF", borderBottomWidth: 1 }}>
+
+        {buscarPor === 'numserie' && !selectedPendente.NUMSERIE ? <TouchableOpacity
+          onPress={() => setOpenCameraReader(true)}
+          style={{ padding: 16, backgroundColor: colors["gray-100"] }}>
+            <Text style={{ textAlign: 'center', color: "#111", fontWeight: 'bold' }}>Ler Número de Série</Text>
+        </TouchableOpacity>
+        
+        : <View style={{ paddingVertical: 8, backgroundColor: "#FFF", borderBottomWidth: 1 }}>
           <Text style={{ textAlign: 'center', color: "#111" }}>Nº Série: <Text style={{ fontWeight: 'bold' }}>{selectedPendente.NUMSERIE}</Text></Text>
         </View>
+        }
+        
         
 
         <View style={{ backgroundColor: "#efefef" }}>
@@ -310,11 +319,17 @@ export default function Ibanez({ navigation }) {
           <TextInput onChangeText={Observacoes => setSelectedPendente({...selectedPendente, OBSERVACOES: Observacoes })} multiline={true} numberOfLines={3} style={{ padding: 16, borderWidth: 1, margin: 16, borderColor: "#ccc" }} />
         </View>
 
-        <TouchableOpacity
+        
+        {buscarPor === 'numserie' && !printed && selectedPendente.NUMSERIE && <TouchableOpacity
+          onPress={handlePrint}
+          style={{ padding: 16, backgroundColor: colors["gray-100"] }}>
+          <Text style={{ textAlign: 'center', color: "#111", fontWeight: 'bold' }}>Imprimir Etiqueta</Text>
+        </TouchableOpacity>}
+        {selectedPendente.NUMSERIE && printed && selectedPendente.CONFORMIDADE && <TouchableOpacity
           onPress={handleInspecao}
           style={{ padding: 16, backgroundColor: colors["gray-100"] }}>
           <Text style={{ textAlign: 'center', color: "#111", fontWeight: 'bold' }}>Finalizar Inspeção</Text>
-        </TouchableOpacity>
+        </TouchableOpacity>}
       </ScrollView>
       : null }
     </View>
@@ -337,7 +352,8 @@ export default function Ibanez({ navigation }) {
           ref={drawer}
           drawerWidth={300}
           drawerPosition={'right'}
-          drawerLockMode="locked-closed"
+          drawerType="front"
+          drawerLockMode="locked-open"
           onDrawerClose={() => setSelectedPendente(null)}
           renderNavigationView={navigationView}>
           <View style={styles.container}>
@@ -348,6 +364,7 @@ export default function Ibanez({ navigation }) {
             visible={openCameraReader ? true : false}
             onRequestClose={() => {
                 setOpenCameraReader(null);
+                return false
             }}>
                   <View style={{ height: RFPercentage(100), backgroundColor: "#efefef", marginTop: 10, flex: 1 }}>
                     <TouchableOpacity onPress={() => setOpenCameraReader(null)} style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 24, marginLeft: 12}}>

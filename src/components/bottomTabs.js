@@ -12,6 +12,8 @@ const APPBAR_HEIGHT = Platform.OS === 'ios' ? 44 : 56
 export default function BottomTabs() {
   const { user } = useUser()
 
+  console.log(user)
+
   return (
     <>
     <Tab.Navigator

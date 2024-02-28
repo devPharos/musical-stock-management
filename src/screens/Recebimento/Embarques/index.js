@@ -14,7 +14,7 @@ import axios from 'axios'
 import { useUser } from '../../../hooks/user'
 
 export default function Embarques({ navigation }) {
-  const { user, baseURL } = useUser()
+  const { user, refreshAuthentication } = useUser()
   const [loading, setLoading] = useState(true)
   const [embarques, setEmbarques] = useState(null)
   const [selectedPedido, setSelectedPedido] = useState(null)
@@ -30,14 +30,12 @@ export default function Embarques({ navigation }) {
         if (error) {
           console.warn(error.message)
           if(error.message.includes('401')) {
-            Alert.alert('Atenção', 'Timeout de conexão.')
-            navigation.popToTop()
-            navigation.push('Login')
+            refreshAuthentication();
           }
           setLoading(false)
         }
       })
-  }, [])
+  }, [user.refresh_token])
 
   const renderItem = ({item}) => {
 

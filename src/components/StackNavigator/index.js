@@ -12,6 +12,7 @@ import EnderecamentoRProvider from '../../screens/Estoque/Enderecamento/Provider
 import TransferenciaRProvider from '../../screens/Estoque/Transferencia/Provider';
 import ConsultaProdutoProvider from '../../screens/Estoque/ConsultaProduto/Provider';
 import ConsultaEnderecoProvider from '../../screens/Estoque/ConsultaEndereco/Provider';
+import LoteNumseqRootProvider from '../../screens/Recebimento/LoteNumseq/Provider';
 
 const Stack = createNativeStackNavigator()
 
@@ -54,6 +55,14 @@ const StackNavigator = ({ mainMenu, setOpenProfile }) => {
         options={{
         headerShown: false,
         title: 'Inspeção Ibanez',
+        }}
+    />
+    <Stack.Screen
+        name="LoteNumseq"
+        component={LoteNumseqRootProvider}
+        options={{
+        headerShown: false,
+        title: 'Lote x Núm. Seq.',
         }}
     />
     <Stack.Screen

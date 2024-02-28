@@ -43,7 +43,7 @@ export default function Login({ navigation }) {
     setBaseURL(varAmbiente === 'producao' ? API_URL : API_TST_URL);
   }
 
-  const { control,handleSubmit,formState: { errors } } = useForm({ values: { username: 'pharos', password: 'Phr@2023'}, resolver: yupResolver(logInFormSchema) });
+  const { control,handleSubmit,formState: { errors } } = useForm({ values: { username: '', password: ''}, resolver: yupResolver(logInFormSchema) });
 
   const handleLogin = async ({ username, password }) => {
     try {
@@ -58,6 +58,7 @@ export default function Login({ navigation }) {
       .then(async (response) => {
         const newUser = {
           access_token: response.data.access_token,
+          refresh_token: response.data.refresh_token,
           username: username,
         }
         axios.defaults.baseURL = baseURL;
@@ -71,6 +72,7 @@ export default function Login({ navigation }) {
             setUser({
               ...user,
               access_token: newUser.access_token,
+              refresh_token: newUser.refresh_token,
               username: newUser.username,
               grupo: data.GRUPO,
               menus: data.MENUS,

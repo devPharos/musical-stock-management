@@ -28,6 +28,14 @@ export default function Atualizacoes({ navigation, route }) {
           navigation={navigation}
           type="secondary"
         />}
+        {user.menus[mainMenu].SUBMENU.findIndex(menu => menu.CODIGO === '103') > -1 &&
+        <CustomButton
+          label="Lote x Núm. Seq."
+          detail="Processo de vínculo de Lote x Números de Séries múltiplos"
+          navigatePath="LoteNumseq"
+          navigation={navigation}
+          type="secondary"
+        />}
       </>}
       
       { bottomTab === 'Estoque' &&

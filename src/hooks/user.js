@@ -1,5 +1,6 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
 import { API_URL } from '../../config'
+import axios from 'axios'
 
 const defaultUser = {
   access_token: '',
@@ -9,16 +10,35 @@ const defaultUser = {
 export const UserContext = createContext(defaultUser)
 
 const UserProvider = ({ children }) => {
-  const [user, setUser] = useState(null)
+  const [user, setUser] = useState({ refresh_token: null })
   const [selectedPrinter, setSelectedPrinter] = useState(null)
-  const APP_VERSION = '1.0.4'
+  const APP_VERSION = '1.0.7'
   const [ambiente, setAmbiente] = useState('producao')
   const [baseURL, setBaseURL] = useState(API_URL)
+
+  async function refreshAuthentication() {
+    await axios
+      .post(`${baseURL}/api/oauth2/v1/token`, null, {
+        params: {
+          grant_type: 'refresh_token',
+          refresh_token: user.refresh_token
+        },
+      })
+      .then(async (response) => {
+        axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.access_token}`;
+        setUser({...user, refresh_token: response.data.refresh_token});
+      })
+    }
+
+  //useEffect(() => {
+  //  console.log(user.refresh_token)
+  //},[user.refresh_token])
 
   const value = {
     APP_VERSION,
     user,
     setUser,
+    refreshAuthentication,
     selectedPrinter,
     setSelectedPrinter,
     ambiente,
