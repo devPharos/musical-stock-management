@@ -30,7 +30,7 @@ export default function Atualizacoes({ navigation, route }) {
         />}
         {user.menus[mainMenu].SUBMENU.findIndex(menu => menu.CODIGO === '103') > -1 &&
         <CustomButton
-          label="Lote x Núm. Seq."
+          label="Lote x Núm. Série"
           detail="Processo de vínculo de Lote x Números de Séries múltiplos"
           navigatePath="LoteNumseq"
           navigation={navigation}

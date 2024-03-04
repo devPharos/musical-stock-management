@@ -14,7 +14,9 @@ import {
     KeyboardAvoidingView,
     TextInput,
     Pressable,
-    Alert
+    Alert,
+    TouchableWithoutFeedback,
+    Keyboard
   } from 'react-native'
   import { colors } from '../../../styles/colors'
   import { useEffect, useState, useRef } from 'react'
@@ -49,9 +51,12 @@ import {
   
   
     async function handleBarCodeScanned({ type, data }) {
-      const inCamera = openCameraReader;
+      // const inCamera = openCameraReader;
       if(loading) {
           return;
+      }
+      if(data === '') {
+        return;
       }
       setLoading(true);
   
@@ -229,7 +234,8 @@ import {
                           />
                           <Text style={{ fontWeight: 'bold', fontSize: 18 }}>Leitura da Etiqueta</Text>
                       </TouchableOpacity>
-                      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={100}>
+                        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={100}>
+                          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                           <ScrollView>
                               <View style={{ width: '100%', paddingVertical: 12 }}>
                                   <View style={{ width: '100%', height: RFPercentage(78), overflow: 'hidden', zIndex: 10, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
@@ -237,15 +243,20 @@ import {
                                       onBarCodeScanned={e => handleBarCodeScanned(e)}
                                       style={{ width: RFPercentage(45), height: RFPercentage(100) }}
                                       />
-  
-                                      <View style={{ position: 'absolute', bottom: 0, backgroundColor: "rgba(0,0,0,.3)", width: RFPercentage(45), flexDirection: 'row', justifyContent: 'center', gap: 8, alignItems: 'center' }}>
-                                        <Icon name="cube-outline" color="#FFF" size={28} />
-                                        <Text style={{ color: "#fff", fontSize: 14, textAlign: 'center' }}><Text style={{ fontSize: 18, fontWeight: 'bold' }}>{openCameraReader.ETIQUETA}</Text></Text>
-                                      </View>
+                                          <>
+                                        { buscarPor === 'numserie' && <TextInput style={{ position: 'absolute', top: 10, width: RFPercentage(45), backgroundColor: "#FFF", height: 48,fontSize: 18, borderWidth: 1, borderColor: "#ccc", textAlign: 'center' }} keyboardType='number-pad' onEndEditing={e => handleBarCodeScanned({ data: e.nativeEvent.text.toUpperCase()})} placeholder='Digite manualmente...' placeholderTextColor='#ccc' />}
+                                        
+                                        <View style={{ position: 'absolute', bottom: 0, backgroundColor: "rgba(0,0,0,.3)", width: RFPercentage(45), flexDirection: 'row', justifyContent: 'center', gap: 8, alignItems: 'center' }}>
+                                          <Icon name="cube-outline" color="#FFF" size={28} />
+                                          <Text style={{ color: "#fff", fontSize: 14, textAlign: 'center' }}><Text style={{ fontSize: 18, fontWeight: 'bold' }}>{openCameraReader.ETIQUETA}</Text></Text>
+                                        </View>
+                                        </>
                                   </View>
                               </View>
                           </ScrollView>
-                      </KeyboardAvoidingView>
+
+                          </TouchableWithoutFeedback>
+                        </KeyboardAvoidingView>
                   </View>
               </Modal> : null }
 

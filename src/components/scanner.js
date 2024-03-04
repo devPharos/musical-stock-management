@@ -1,8 +1,7 @@
 import { BarCodeScanner } from 'expo-barcode-scanner'
 import { useState, useEffect } from 'react'
 import { ActivityIndicator, SafeAreaView, StyleSheet, TextInput } from 'react-native'
-import { colors } from '../styles/colors'
-export default function Scanner({ handleCodeScanned, loading, setLoading }) {
+export default function Scanner({ handleCodeScanned, loading }) {
   const [scanned, setScanned] = useState(false)
   const [hasPermission, setHasPermission] = useState(null)
 
