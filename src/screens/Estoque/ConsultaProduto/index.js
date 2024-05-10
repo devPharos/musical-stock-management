@@ -10,6 +10,7 @@ import {
     ScrollView,
     Image,
     ActivityIndicator,
+    TouchableOpacity,
   } from 'react-native'
   import Icon from 'react-native-vector-icons/Ionicons'
   import { colors } from '../../../styles/colors'
@@ -25,12 +26,13 @@ import {
   
     function getProductData(find) {
       setLoading(true)
+      console.log(find)
       axios
         .get(`/wBuscaProd?Produto=${find}`)
-        .then((response) => {
+        .then(({ data }) => {
           setLoading(false)
   
-          const data = response.data
+          console.log({ data })
   
           if(data.PRODUTOS.length > 0) {
             setProduct(data)
@@ -106,6 +108,9 @@ import {
                   <View style={{ padding: 4,flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',backgroundColor: "#EFEFEF" }}>
                     <Text>Reservado </Text><Text>{saldo.RESERVA}</Text>
                   </View>
+                  <TouchableOpacity onPress={() => null} style={{ borderWidth: 1, borderColor: '#ccc', backgroundColor: '#efefef', textAlign: 'center', paddingVertical: 6, paddingHorizontal: 6, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 24 }}>
+                    <Text>Endereços do Armazém 01</Text>
+                  </TouchableOpacity>
                 </View>
               </View>
               )
@@ -179,7 +184,7 @@ import {
                         <TextInput
                           placeholder={'Código ME, PartNumber ou NCM'}
                           style={styles.input}
-                          onEndEditing={getProductData}
+                          onEndEditing={(e) => getProductData(e.nativeEvent.text.toUpperCase())}
                         />
                       </View>
                     </View>

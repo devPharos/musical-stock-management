@@ -9,6 +9,7 @@ import {
   Image,
   TextInput,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native'
 import { colors } from '../../../styles/colors'
 import Scanner from '../../../components/scanner'
@@ -79,6 +80,7 @@ export default function Transferencia({ navigation }) {
           PRODUTOS: data.PRODUTOS[0],
           QTDE: data.QTDE,
         }
+        console.log(product)
 
         setProduct(product)
         setOpenProductScanner(false)
@@ -128,8 +130,10 @@ export default function Transferencia({ navigation }) {
       endereco_origem: product.ENDERECO,
       armazem_destino: product.ARMAZEMDESTINO,
       endereco_destino: product.ENDERECODESTINO,
-      quantidade: product.QTDE
+      quantidade: product.QTDE,
+      etiqueta: product.CODIGO
     }
+    console.log(body)
     axios
       .post(`/wTransferir`, body)
       .then((response) => {
@@ -146,7 +150,6 @@ export default function Transferencia({ navigation }) {
       }).catch(err => {
         setLoading(false)
       })
-      setLoading(false)
   }
 
   return (
@@ -252,9 +255,10 @@ export default function Transferencia({ navigation }) {
               </View>
             </TouchableOpacity>
 
-            
-            { product.CODIGO && product.ENDERECO && product.ENDERECODESTINO && 
-              <Pressable
+            { loading ? <ActivityIndicator color={colors["green-300"]} />
+            :
+            product.CODIGO && product.ENDERECO && product.ENDERECODESTINO && 
+              <TouchableOpacity
                 style={styles.button}
                 onPress={handleTransferenceConfirmation}
               >
@@ -267,13 +271,13 @@ export default function Transferencia({ navigation }) {
                   color={colors['gray-500']
                   }
                 />
-              </Pressable>
+              </TouchableOpacity>
               }
               
             </>
             : 
             <View style={styles.inputContent}>
-              <Pressable
+              <TouchableOpacity
                 style={styles.button}
                 onPress={() => setOpenProductScanner(true)}
               >
@@ -284,7 +288,7 @@ export default function Transferencia({ navigation }) {
                 />
                 <Text style={styles.buttonLabel}>Etiqueta EAN / Lote</Text>
 
-              </Pressable>
+              </TouchableOpacity>
 
             </View>
             }

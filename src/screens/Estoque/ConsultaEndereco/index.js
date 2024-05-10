@@ -149,7 +149,7 @@ import {
                           placeholder={'Armazém + Endereço, ex: 0103E0103001'}
                           style={styles.input}
                           onChangeText={setFind}
-                          onEndEditing={getProductData}
+                          onEndEditing={(e) => getProductData(e.nativeEvent.text.toUpperCase())}
                         />
                       </View>
                     </View>

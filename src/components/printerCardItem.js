@@ -14,7 +14,7 @@ export function PrinterCardItem({
   }
 
   return (
-    <Pressable style={styles.itemContainer} onPress={onPrinterSelection}>
+    <Pressable style={styles.itemContainer} onPress={() => onPrinterSelection(printer)}>
       <Icon
         name={selected ? 'radio-button-on' : 'radio-button-off'}
         size={20}
@@ -23,24 +23,24 @@ export function PrinterCardItem({
 
       <View style={styles.itemContent}>
         <View style={styles.itemHeader}>
-          <Text style={styles.itemTitle}>{printer.modelo}</Text>
-          <Text>{printer.descricao}</Text>
+          <Text style={styles.itemTitle}>{printer.MODELO}</Text>
+          <Text>{printer.DESCRICAO}</Text>
         </View>
 
         <View style={styles.printerInfoContainer}>
           <View style={styles.contentItem}>
             <Text style={styles.contentTitle}>Fila</Text>
-            <Text style={styles.contentLabel}>{printer.fila}</Text>
+            <Text style={styles.contentLabel}>{printer.FILA}</Text>
           </View>
 
           <View style={styles.contentItem}>
             <Text style={styles.contentTitle}>LPT</Text>
-            <Text style={styles.contentLabel}>{printer.lpt}</Text>
+            <Text style={styles.contentLabel}>{printer.LPT}</Text>
           </View>
 
           <View style={styles.contentItem}>
             <Text style={styles.contentTitle}>Tipo</Text>
-            <Text style={styles.contentLabel}>{printer.tipo}</Text>
+            <Text style={styles.contentLabel}>{printer.TIPO}</Text>
           </View>
         </View>
       </View>

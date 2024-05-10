@@ -20,7 +20,7 @@ export default function PrinterSelection({ navigation }) {
     axios
       .get(`/wPrinter`)
       .then((response) => {
-        const availablePrinters = response.data.impressoras
+        const availablePrinters = response.data.IMPRESSORAS
         setPrinters(availablePrinters)
       })
       .catch((error) => {
@@ -32,7 +32,7 @@ export default function PrinterSelection({ navigation }) {
 
   const findSelectedPrinter = (printer) => {
     if (printer) {
-      return printers.findIndex((item) => item.codigo === printer.codigo)
+      return printers.findIndex((item) => item.CODIGO === printer.CODIGO)
     }
 
     return -1

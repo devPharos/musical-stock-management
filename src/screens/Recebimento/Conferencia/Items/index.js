@@ -75,6 +75,7 @@ export function Items({ navigation }) {
         }
       })
     })
+    // console.log(invoiceItems.length, checkdItems)
 
     if (checkdItems === invoiceItems.length) {
       setAllItemsWereConferred(true)
@@ -106,6 +107,8 @@ export function Items({ navigation }) {
         itens,
         imprimeetiquetas: true,
       }
+
+      console.log(body)
 
       axios
         .post(`/wConfereNF`, body)
