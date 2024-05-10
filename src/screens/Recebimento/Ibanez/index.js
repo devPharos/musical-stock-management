@@ -23,19 +23,26 @@ import Icon from 'react-native-vector-icons/Ionicons'
 import { useUser } from '../../../hooks/user'
 import { BarCodeScanner } from 'expo-barcode-scanner'
 import { RFPercentage } from 'react-native-responsive-fontsize'
+import { Camera, useCameraDevice } from 'react-native-vision-camera'
 
 export default function Ibanez({ navigation }) {
+  const [sequencial, setSequencial] = useState(1)
   const [openCameraReader, setOpenCameraReader] = useState(null);
   const [hasPermission, setHasPermission] = useState(null);
+  const [fotos, setFotos] = useState([])
   const { ambiente,refreshAuthentication, user } = useUser()
   const [loading, setLoading] = useState(true)
+  const [loadingFoto, setLoadingFoto] = useState(false)
   const [pendentes, setPendentes] = useState(null)
   const [selectedPendente, setSelectedPendente] = useState(null)
   const [buscarPor, setBuscarPor] = useState('etiqueta')
   const [motivos, setMotivos] = useState(null)
   const [printed, setPrinted] = useState(true)
+  const [previewPhoto, setPreviewPhoto] = useState(null)
+  const [openCamera, setOpenCamera] = useState(false)
 
   const drawer = useRef(null);
+  const cameraRef = useRef(null)
 
   useEffect(() => {
     const getBarCodeScannerPermissions = async () => {
@@ -245,9 +252,17 @@ export default function Ibanez({ navigation }) {
     ])
   }
 
+  function toggleCameraType() {
+    setType(current => (current === CameraType.back ? CameraType.front : CameraType.back));
+  }
+
   function handleEAN() {
     setBuscarPor('ean')
     setOpenCameraReader({ ETIQUETA: 'EAN do produto' })
+  }
+
+  function handlePreviewPhoto(foto) {
+    setPreviewPhoto(foto)
   }
 
   const navigationView = () => (
@@ -318,6 +333,24 @@ export default function Ibanez({ navigation }) {
           <Text style={{ marginLeft: 16, marginTop: 32, color: "#868686", fontWeight: 'bold'}}>Problemas:</Text>
           <TextInput onChangeText={Observacoes => setSelectedPendente({...selectedPendente, OBSERVACOES: Observacoes })} multiline={true} numberOfLines={3} style={{ padding: 16, borderWidth: 1, margin: 16, borderColor: "#ccc" }} />
         </View>
+        
+        
+
+        { selectedPendente.CONFORMIDADE === 'N' && <View style={{ backgroundColor: "#efefef", height: 170 }}>
+          <Text style={{ marginLeft: 16, marginTop: 32, color: "#868686", fontWeight: 'bold'}}>Fotos:</Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', gap: 8, flex: 1 }}>
+            {fotos.map((foto, index) => {
+              return <TouchableOpacity onPress={() => handlePreviewPhoto(foto)} key={index} style={{ backgroundColor: "#000",width: 62, height: 82, borderWidth: 1 }}>
+                <Image source={{ uri: foto }} style={{ width: 60, height: 80}} />
+              </TouchableOpacity>
+            })}
+            </View>
+            <TouchableOpacity
+            onPress={() => setOpenCamera(true)}
+            style={{ padding: 16, backgroundColor: colors["gray-500"], marginTop: 16 }}>
+            <Text style={{ textAlign: 'center', color: "#fff", fontWeight: 'bold' }}>Adicionar Foto</Text>
+          </TouchableOpacity>
+        </View>}
 
         
         {buscarPor === 'numserie' && !printed && selectedPendente.NUMSERIE && <TouchableOpacity
@@ -341,6 +374,49 @@ export default function Ibanez({ navigation }) {
     }
   },[selectedPendente])
 
+  const device = useCameraDevice('back')
+
+  async function takePhoto() {
+    setLoadingFoto(true)
+    const photo = await cameraRef.current.takePhoto({
+      qualityPrioritization: 'speed',
+      flash: 'off',
+    })
+    const result = await fetch(`file://${photo.path}`)
+    const data = await result.blob();
+
+    var reader = new FileReader();
+    reader.readAsDataURL(data); 
+    reader.onloadend = function() {
+      var base64data = reader.result.substr(reader.result.indexOf(',')+1);
+      const revisao = selectedPendente.PROXIMAREVISAO || "01"
+      const name = selectedPendente.PRODUTO+"_"+selectedPendente.NUMSERIE+"_REV"+revisao+"_"+sequencial.toString().padStart(2,"0")+".jpg";
+      console.log({sequencial})
+      try {
+        axios
+          .post(`/wInspecaoPhoto`, {name, base64data })
+          .then(({ data }) => {
+            if(data.Status === 200) {
+              setFotos([...fotos, reader.result])
+              setSequencial(sequencial + 1)
+              setLoadingFoto(false)
+              setPreviewPhoto(reader.result)
+            } else {
+              console.log(2)
+              setLoadingFoto(false)
+            }
+          }).catch((error) => {
+            console.log(error)
+            setLoadingFoto(false)
+          })
+      } catch(err) {
+        console.log(err.message)
+        setLoadingFoto(false)
+      }
+    }
+
+  }
+  
   return (
     <SafeAreaView style={styles.container}>
       <ImageBackground
@@ -394,6 +470,77 @@ export default function Ibanez({ navigation }) {
                     </KeyboardAvoidingView>
                 </View>
             </Modal> : null }
+
+          {openCamera && !loading ?
+            <Modal
+            animationType="slide"
+            transparent={true}
+            visible={openCamera ? true : false}
+            onRequestClose={() => {
+                setOpenCamera(false);
+                return false
+            }}>
+                  <View style={{ height: RFPercentage(100), backgroundColor: "#efefef", marginTop: 10, flex: 1 }}>
+                    <TouchableOpacity onPress={() => setOpenCamera(false)} style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 24, marginLeft: 12}}>
+                        <Icon
+                          name="chevron-back-outline"
+                          size={30}
+                          color={colors['gray-500']}
+                        />
+                        <Text style={{ fontWeight: 'bold', fontSize: 18 }}>Fotos dos problemas encontrados</Text>
+                    </TouchableOpacity>
+                    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={100}>
+                        <ScrollView>
+                            <View style={{ width: '100%', paddingVertical: 12 }}>
+                                <View style={{ width: '100%', height: RFPercentage(90), overflow: 'hidden', zIndex: 10, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+                                  <Camera device={device} isActive={true} photo={true} ref={cameraRef}
+                                    style={{ width: RFPercentage(55), height: RFPercentage(100) }} />
+                                  {!loadingFoto ?
+                                    <TouchableOpacity onPress={() => takePhoto()} style={{ borderWidth: 1, borderColor: "#efefef", fontWeight: 'bold', backgroundColor: "#FFF", borderRadius: 50, width: 150, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 50, position: 'absolute', bottom: 50, left: 102 }}>
+                                    <Text>Tirar foto</Text>
+                                  </TouchableOpacity>
+                                  :
+                                  <View style={{ borderWidth: 1, borderColor: "#efefef", fontWeight: 'bold', backgroundColor: "#FFF", borderRadius: 50, width: 300, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 50, position: 'absolute', bottom: 50, left: 28 }}>
+                                    <Text>Por favor aguarde, enviando imagem...</Text>
+                                  </View>}
+                                </View>
+                            </View>
+                        </ScrollView>
+                    </KeyboardAvoidingView>
+                </View>
+            </Modal> : null }
+
+          {previewPhoto &&
+            <Modal
+            animationType="slide"
+            transparent={true}
+            visible={previewPhoto ? true : false}
+            onRequestClose={() => {
+                setPreviewPhoto(null);
+                return false
+            }}>
+                  <View style={{ height: RFPercentage(100), backgroundColor: "#efefef", marginTop: 10, flex: 1 }}>
+                    <TouchableOpacity onPress={() => setPreviewPhoto(null)} style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 24, marginLeft: 12}}>
+                        <Icon
+                          name="chevron-back-outline"
+                          size={30}
+                          color={colors['gray-500']}
+                        />
+                        <Text style={{ fontWeight: 'bold', fontSize: 18 }}>Preview da Foto</Text>
+                    </TouchableOpacity>
+                    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={100}>
+                        <ScrollView>
+                            <View style={{ width: '100%', paddingVertical: 12 }}>
+                                <View style={{ width: '100%', height: RFPercentage(90), overflow: 'hidden', zIndex: 10, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+                                  <Image source={{ uri: previewPhoto }} style={{ width: 400, height: 600 }} />
+                                </View>
+                            </View>
+                        </ScrollView>
+                    </KeyboardAvoidingView>
+                </View>
+            </Modal>}
+
+
             <View style={{ flexDirection: 'column', flex: 1, justifyContent: 'flex-start', alignItems: 'center', marginTop: 32, gap: 16 }}>
               { !loading && <TouchableOpacity onPress={handleEAN} style={{ backgroundColor: ambiente === 'producao' ? colors['green-300'] : colors['blue-300'], borderRadius: 16, paddingVertical: 16, paddingHorizontal: 32, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
                 <>
@@ -414,9 +561,6 @@ export default function Ibanez({ navigation }) {
             </View>
           </View>
         </DrawerLayoutAndroid>
-        
-
-
         
       </ImageBackground>
     </SafeAreaView>

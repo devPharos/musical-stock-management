@@ -43,6 +43,7 @@ export default function Login({ navigation }) {
     setBaseURL(varAmbiente === 'producao' ? API_URL : API_TST_URL);
   }
 
+  // const { control,handleSubmit,formState: { errors } } = useForm({ values: { username: 'pharos', password: 'Phr@2023'}, resolver: yupResolver(logInFormSchema) });
   const { control,handleSubmit,formState: { errors } } = useForm({ values: { username: '', password: ''}, resolver: yupResolver(logInFormSchema) });
 
   const handleLogin = async ({ username, password }) => {
