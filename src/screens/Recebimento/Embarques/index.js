@@ -58,10 +58,16 @@ export default function Embarques({ navigation }) {
             <View style={{ backgroundColor:"#FFF", borderRadius: 8, padding: 8, width: 200 }}>
               <Text style={{ textAlign: 'center' }}>Buscando...</Text>
             </View>
-          : <FlatList data={embarques}
+          : embarques.length > 0 ?
+          <FlatList data={embarques}
             renderItem={renderItem}
             keyExtractor={item => item.PEDIDO}
             extraData={selectedPedido} style={{ flex: 1 }} />
+            :
+            <View style={{ paddingVertical: 24 }}>
+              <Text style={{ fontWeight: 'bold',textAlign: 'center' }}>Não há nenhum embarque previsto</Text>
+              <Text style={{ fontWeight: 'bold',textAlign: 'center' }}>para chegar no momento.</Text>
+            </View>
           }
         </View>
 

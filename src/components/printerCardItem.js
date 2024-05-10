@@ -9,8 +9,6 @@ export function PrinterCardItem({
 }) {
   const { setSelectedPrinter } = useUser()
 
-  console.log(printer)
-
   const onPrinterSelection = () => {
     setSelectedPrinter(printer)
   }

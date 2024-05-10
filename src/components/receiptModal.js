@@ -36,7 +36,6 @@ export default function ReceiptModal({
 
       invoiceItems.forEach((i) => {
         if (i.codigodebarras === item.codigodebarras) {
-          console.log(quantity,i.codigodebarras)
           i.qtdScan = quantity
         }
       })
@@ -57,7 +56,6 @@ export default function ReceiptModal({
     <Modal animationType="slide" transparent={true} visible={open}>
       <View style={styles.centeredView}>
         <View style={styles.modalView}>
-          {console.log({item})}
           <View style={styles.data}>
             <Text style={styles.modalText}>{item.partnumber} - {item.descricao}</Text>
           </View>

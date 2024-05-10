@@ -54,7 +54,6 @@ export default function PrinterSelection({ navigation }) {
           {printers &&
             printers.map((printer, index) => {
               const selectedPrinterIndex = findSelectedPrinter(selectedPrinter)
-              // console.log(printer,index)
               return (
                 <PrinterCardItem
                   printer={printer}

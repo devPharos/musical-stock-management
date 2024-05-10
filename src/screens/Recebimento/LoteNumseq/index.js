@@ -65,7 +65,6 @@ import {
         .then((response) => {
             setSelectedLote({LOTE: response.data.CODIGO, ETIQUETA: response.data, NUMSERIES: []})
         })
-        console.log({data})
         setOpenCameraReader(false)
         setLoading(false);
       } else if(buscarPor === 'numserie') {
@@ -158,7 +157,6 @@ import {
                 <Text style={{ color: '#FFF', fontWeight: 'bold' }}>Adicionar Número de Série</Text>
             </TouchableOpacity>
             {selectedLote.NUMSERIES && selectedLote.NUMSERIES.length > 0 && selectedLote.NUMSERIES.map((numserie,index) => {
-                console.log({ numserie })
                 return <View key={index} style={{ width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent:'center', backgroundColor: '#FFF', padding: 16, borderBottomWidth: 1, borderColor: '#ccc' }}>
                     <Icon name="barcode-outline" color="#111" size={24} />
                     <Text style={{ flex: 1 }}>{numserie}</Text>

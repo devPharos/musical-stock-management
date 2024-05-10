@@ -29,13 +29,10 @@ import {
   
     function getProductData() {
       setLoading(true)
-  
       axios
-        .get(`/wBuscaProd?Produto=${find}`)
-        .then((response) => {
+        .get(`/wBuscaEnd?Armazem=${find.substr(0,2)}&Endereco=${find.substr(2)}`)
+        .then(({ data }) => {
           setLoading(false)
-  
-          const data = response.data
   
           if(data.PRODUTOS.length > 0) {
             setEndereco(data)
@@ -45,7 +42,6 @@ import {
             setEndereco(null)
           }
         }).catch(err => {
-          console.log(err)
           setLoading(false)
         })
     }
@@ -61,7 +57,7 @@ import {
           <ScrollView style={{ width: '100%' }}>
             
             <View style={{ flex: 1, position: 'relative' }}>
-              <Image source={{ uri: endereco.PRODUTOS[0].IMAGEMGRANDE}} style={{ width: 284, height: 284 }} />
+              <Image source={{ uri: endereco.PRODUTOS[0].IMAGEM}} style={{ width: 284, height: 284 }} />
               <Pressable style={{ position: 'absolute', top: 25, left: 10, padding: 4, flexDirection: 'row', alignItems: 'center', backgroundColor: "#efefef", borderRadius: 8 }} onPress={() => drawer.current.closeDrawer()}>
                 <Icon name="chevron-back-outline" size={18} color="#868686" /><Text style={{ fontSize: 12, color: "#868686" }}>Voltar</Text>
               </Pressable>
@@ -76,40 +72,21 @@ import {
             </View>
   
             <View style={{ paddingVertical: 8, borderTopWidth: 1}}>
-              <Text style={{ textAlign: 'center', color: "#111" }}>Código: <Text style={{ fontWeight: 'bold' }}>{endereco.PRODUTOS[0].CODIGO}</Text></Text>
+              <Text style={{ textAlign: 'center', color: "#111" }}>Código: <Text style={{ fontWeight: 'bold' }}>{endereco.PRODUTOS[0].PRODUTO}</Text></Text>
               <Text style={{ textAlign: 'center', color: "#111" }}>NCM: <Text style={{ fontWeight: 'bold' }}>{endereco.PRODUTOS[0].NCM}</Text></Text>
             </View>
-  
-            { endereco.PRODUTOS[0].SALDOS.map((saldo, index) => {
-              return (
-              <View key={index} style={{ marginVertical: 12, borderStyle: 'dashed', borderTopWidth: 1, borderColor: "#ccc", paddingVertical: 12 }}>
-                <Text style={{ textAlign: 'center', color: "#111", fontSize: 18 }}>Armazém: <Text style={{ fontWeight: 'bold' }}>{saldo.ARMAZEM}</Text></Text>
+            { endereco.PRODUTOS[0] && 
+            <View style={{ marginVertical: 12, borderStyle: 'dashed', borderTopWidth: 1, borderColor: "#ccc", paddingVertical: 12 }}>
+                <Text style={{ textAlign: 'center', color: "#111", fontSize: 18 }}>Armazém: <Text style={{ fontWeight: 'bold' }}>{endereco.PRODUTOS[0].ARMAZEM}</Text></Text>
                 <View>
                   <View style={{ padding: 4,flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',backgroundColor: "#EFEFEF" }}>
-                    <Text>Atual </Text><Text>{saldo.ATUAL}</Text>
+                    <Text>Saldo </Text><Text>{endereco.PRODUTOS[0].QUANTIDADE}</Text>
                   </View>
                   <View style={{ padding: 4,flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Text>A classificar </Text><Text>{saldo.CLASSIF}</Text>
-                  </View>
-                  <View style={{ padding: 4,flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',backgroundColor: "#EFEFEF" }}>
-                    <Text>Empenho </Text><Text>{saldo.EMPENHO}</Text>
-                  </View>
-                  <View style={{ padding: 4,flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Text>Pedidos </Text><Text>{saldo.PEDIDOS}</Text>
-                  </View>
-                  <View style={{ padding: 4,flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',backgroundColor: "#EFEFEF" }}>
-                    <Text>Em poder de terceiros </Text><Text>{saldo.QNPT}</Text>
-                  </View>
-                  <View style={{ padding: 4,flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Text>Em nosso poder </Text><Text>{saldo.QTNP}</Text>
-                  </View>
-                  <View style={{ padding: 4,flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',backgroundColor: "#EFEFEF" }}>
-                    <Text>Reservado </Text><Text>{saldo.RESERVA}</Text>
+                    <Text>Empenhado </Text><Text>{endereco.PRODUTOS[0].EMPENHO}</Text>
                   </View>
                 </View>
-              </View>
-              )
-            }) }
+              </View>}
   
           </ScrollView>
         </>}
@@ -127,7 +104,7 @@ import {
             drawerWidth={300}
             drawerPosition='right'
             drawerLockMode="locked-closed"
-            onDrawerClose={() => setProduct(null)}
+            onDrawerClose={() => setEndereco(null)}
             renderNavigationView={navigationView}>
             <View style={styles.container}>
             {openProductScanner && (

@@ -9,16 +9,12 @@ import {
 } from 'react-native'
 import { colors } from '../../../../styles/colors'
 import axios from 'axios'
-import { useUser } from '../../../../hooks/user'
 import React from 'react'
 import Icon from 'react-native-vector-icons/Ionicons'
-import { useNavigation } from '@react-navigation/native'
-
 import { useTransferencia } from '../../../../hooks/transferencia'
 
 export default function ConfirmacaoTransf() {
 
-  const { user, baseURL } = useUser()
   const { destinationAddress, originAddress, product } = useTransferencia()
 
   const handleEndConference = async () => {
@@ -29,14 +25,11 @@ export default function ConfirmacaoTransf() {
       armazem_destino: product.ARMAZEMDESTINO,
       endereco_destino: product.ENDERECODESTINO,
     }
-    // console.log(body)
     axios
       .post(`/wTransferir`, body)
       .then((response) => {
-        console.log({response})
         // navigation.navigate('Dashboard')
       }).catch(err => {
-        console.log({err})
       })
   }
   return (

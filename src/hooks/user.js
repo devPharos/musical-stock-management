@@ -12,7 +12,7 @@ export const UserContext = createContext(defaultUser)
 const UserProvider = ({ children }) => {
   const [user, setUser] = useState({ refresh_token: null })
   const [selectedPrinter, setSelectedPrinter] = useState(null)
-  const APP_VERSION = '1.0.12'
+  const APP_VERSION = '1.0.13'
   const [ambiente, setAmbiente] = useState('producao')
   const [baseURL, setBaseURL] = useState(API_URL)
 
@@ -29,10 +29,6 @@ const UserProvider = ({ children }) => {
         setUser({...user, refresh_token: response.data.refresh_token});
       })
     }
-
-  //useEffect(() => {
-  //  console.log(user.refresh_token)
-  //},[user.refresh_token])
 
   const value = {
     APP_VERSION,

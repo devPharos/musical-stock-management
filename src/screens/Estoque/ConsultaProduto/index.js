@@ -9,7 +9,6 @@ import {
     DrawerLayoutAndroid,
     ScrollView,
     Image,
-    TouchableOpacity,
     ActivityIndicator,
   } from 'react-native'
   import Icon from 'react-native-vector-icons/Ionicons'
@@ -17,19 +16,15 @@ import {
   import { useRef, useState } from 'react'
   import Scanner from '../../../components/scanner'
   import axios from 'axios'
-  import { useUser } from '../../../hooks/user'
   export default function ConsultaProduto() {
   
-    const { user,baseURL } = useUser()
     const [ product, setProduct ] = useState(null)
     const [openProductScanner, setOpenProductScanner] = useState(false)
     const [loading, setLoading] = useState(false)
-    const [find, setFind] = useState(null)
     const drawer = useRef(null);
   
-    function getProductData() {
+    function getProductData(find) {
       setLoading(true)
-  
       axios
         .get(`/wBuscaProd?Produto=${find}`)
         .then((response) => {
@@ -45,7 +40,6 @@ import {
             setProduct(null)
           }
         }).catch(err => {
-          console.log(err)
           setLoading(false)
         })
     }
@@ -80,7 +74,13 @@ import {
               <Text style={{ textAlign: 'center', color: "#111" }}>NCM: <Text style={{ fontWeight: 'bold' }}>{product.PRODUTOS[0].NCM}</Text></Text>
             </View>
   
-            { product.PRODUTOS[0].SALDOS.map((saldo, index) => {
+            { product.PRODUTOS[0].SALDOS.length === 0 ?
+            <View style={{ marginVertical: 12, borderStyle: 'dashed', borderTopWidth: 1, borderColor: "#ccc", paddingVertical: 12 }}>
+              <Text style={{ textAlign: 'center', color: "#f00", fontSize: 14 }}>Não há saldo disponível em nenhum</Text>
+              <Text style={{ textAlign: 'center', color: "#f00", fontSize: 14 }}>armazém para este produto.</Text>
+            </View>
+            :
+            product.PRODUTOS[0].SALDOS.map((saldo, index) => {
               return (
               <View key={index} style={{ marginVertical: 12, borderStyle: 'dashed', borderTopWidth: 1, borderColor: "#ccc", paddingVertical: 12 }}>
                 <Text style={{ textAlign: 'center', color: "#111", fontSize: 18 }}>Armazém: <Text style={{ fontWeight: 'bold' }}>{saldo.ARMAZEM}</Text></Text>
@@ -179,7 +179,6 @@ import {
                         <TextInput
                           placeholder={'Código ME, PartNumber ou NCM'}
                           style={styles.input}
-                          onChangeText={setFind}
                           onEndEditing={getProductData}
                         />
                       </View>

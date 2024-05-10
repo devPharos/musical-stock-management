@@ -95,7 +95,6 @@ export default function Ibanez({ navigation }) {
       } else {
         axios.get(`/wIbanezEan?Produto=${selectedPendente.PRODUTO}&SN=${data}`)
         .then(({ data: retorno }) => {
-          //console.log(data)
           setLoading(false)
           setOpenCameraReader(null)
           setSelectedPendente({...selectedPendente, NUMSERIE: data })
@@ -194,7 +193,6 @@ export default function Ibanez({ navigation }) {
         })
     } catch(err) {
       Alert.alert("Atenção!",err.Message)
-      //console.log(err)
       setLoading(false)
     }
   }
@@ -239,7 +237,6 @@ export default function Ibanez({ navigation }) {
         text: 'Sim',
         isPreferred: true,
         onPress: async () => {
-          //console.log('Imprimindo...')
           axios.get(`/wEtiqSN?produto=${selectedPendente.PRODUTO}&numserie=${selectedPendente.NUMSERIE}`)
           setPrinted(true)
         }
@@ -391,7 +388,6 @@ export default function Ibanez({ navigation }) {
       var base64data = reader.result.substr(reader.result.indexOf(',')+1);
       const revisao = selectedPendente.PROXIMAREVISAO || "01"
       const name = selectedPendente.PRODUTO+"_"+selectedPendente.NUMSERIE+"_REV"+revisao+"_"+sequencial.toString().padStart(2,"0")+".jpg";
-      console.log({sequencial})
       try {
         axios
           .post(`/wInspecaoPhoto`, {name, base64data })
@@ -402,15 +398,12 @@ export default function Ibanez({ navigation }) {
               setLoadingFoto(false)
               setPreviewPhoto(reader.result)
             } else {
-              console.log(2)
               setLoadingFoto(false)
             }
           }).catch((error) => {
-            console.log(error)
             setLoadingFoto(false)
           })
       } catch(err) {
-        console.log(err.message)
         setLoadingFoto(false)
       }
     }

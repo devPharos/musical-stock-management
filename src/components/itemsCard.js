@@ -19,7 +19,6 @@ export function ItemsCard({ itemData }) {
           axios
             .post(`/wNacionaliz`, body)
             .then((response) => {
-              console.log(response.data)
             })
             .catch((error) => {
               if (error) {

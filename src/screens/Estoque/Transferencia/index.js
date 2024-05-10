@@ -12,11 +12,10 @@ import {
 } from 'react-native'
 import { colors } from '../../../styles/colors'
 import Scanner from '../../../components/scanner'
-import { Controller, useForm } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import * as Yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import axios from 'axios'
-import { useUser } from '../../../hooks/user'
 import { useState } from 'react'
 import Icon from 'react-native-vector-icons/Ionicons'
 import { useTransferencia } from '../../../hooks/transferencia'
@@ -26,16 +25,11 @@ export default function Transferencia({ navigation }) {
   const [openProductScanner, setOpenProductScanner] = useState(false)
   const [openDestinationScanner, setOpenDestinationScanner] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [quantidade, setQuantidade] = useState(1)
 
-  const { user } = useUser()
   const {
-    originAddress,
     setOriginAddress,
     product,
     setProduct,
-    destinationAddress,
-    setDestinationAddress,
   } = useTransferencia()
   
   const transferForm = Yup.object().shape({
@@ -55,12 +49,16 @@ export default function Transferencia({ navigation }) {
       .then((response) => {
         const data = response.data
 
+        setProduct({ ...product, ENDERECO: data.ENDERECO, ARMAZEM: data.ARMAZEM })
         setOriginAddress(data)
         setOpenOriginScanner(false)
         setLoading(false)
       })
       .catch((error) => {
         if (error) {
+          if(error.message.includes('401')) {
+            refreshAuthentication();
+          }
           setLoading(false)
           Alert.alert('Atenção!','Endereço de origem não encontrado')
         }
@@ -82,14 +80,15 @@ export default function Transferencia({ navigation }) {
           QTDE: data.QTDE,
         }
 
-        setQuantidade(data.QTDE)
         setProduct(product)
         setOpenProductScanner(false)
         setLoading(false)
       })
       .catch((error) => {
         if (error) {
-          console.log({ error })
+          if(error.message.includes('401')) {
+            refreshAuthentication();
+          }
           setOpenProductScanner(false)
           Alert.alert('Atenção!','Produto não encontrado')
           setLoading(false)
@@ -99,7 +98,6 @@ export default function Transferencia({ navigation }) {
 
   const onDestinationCodeScanned = (code) => {
     setLoading(true)
-    console.log()
     const Armazem = code.substring(0, 2)
     const Endereco = code.substring(2)
 
@@ -113,7 +111,9 @@ export default function Transferencia({ navigation }) {
       })
       .catch((error) => {
         if (error) {
-          console.log(error)
+          if(error.message.includes('401')) {
+            refreshAuthentication();
+          }
           Alert.alert('Atenção!','Endereço de destino não encontrado')
           setLoading(false)
         }
@@ -121,17 +121,21 @@ export default function Transferencia({ navigation }) {
   }
 
   const handleTransferenceConfirmation = () => {
+    setLoading(true)
     const body = {
-      produtos: product.CODIGO,
+      produtos: product.PRODUTOS.CODIGO,
       armazem_origem: product.ARMAZEM,
       endereco_origem: product.ENDERECO,
       armazem_destino: product.ARMAZEMDESTINO,
       endereco_destino: product.ENDERECODESTINO,
+      quantidade: product.QTDE
     }
     axios
       .post(`/wTransferir`, body)
       .then((response) => {
-        Alert.alert('Atenção!','Transferência realizada com sucesso.', [
+        console.log(response.data)
+        setLoading(false)
+        Alert.alert('Atenção!',response.data.Message, [
           {
             text: 'Ok',
             onPress: () => {
@@ -140,8 +144,9 @@ export default function Transferencia({ navigation }) {
           }
         ])
       }).catch(err => {
-        console.log({err})
+        setLoading(false)
       })
+      setLoading(false)
   }
 
   return (
@@ -181,7 +186,6 @@ export default function Transferencia({ navigation }) {
                   </View>
                 </View>
               </View>
-              {/* { console.log(product)} */}
               <View style={{ padding: 8, backgroundColor: "#EFEFEF", flexDirection: 'row', justifyContent: 'justify-content', gap: 8, alignItems: 'center' }}>
                 <View style={{ flexDirection: 'row', marginLeft: 16, justifyContent: 'flex-start', gap: 8, alignItems: 'center', flex: 1 }}>
                   {product.PRODUTOS.ETIQUETA === '' ?
@@ -205,7 +209,7 @@ export default function Transferencia({ navigation }) {
               <View style={{ padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Text>Quantidade na Etiqueta: </Text>
                 <TextInput
-                  editable={false}
+                  editable={true}
                   keyboardType='numeric'
                   onChangeText={QTDE => setProduct({ ...product, QTDE })}
                   value={product.QTDE.toString()}
@@ -214,17 +218,22 @@ export default function Transferencia({ navigation }) {
               </View>
             </View>
 
-            <View style={[styles.item,{ width: '100%', backgroundColor: "#fff", borderRadius: 8, borderColor: colors["green-300"], borderWidth: 1 }]}>
+            <TouchableOpacity onPress={() => setOpenOriginScanner(true)} style={[styles.item,{ width: '100%', backgroundColor: "#fff", borderRadius: 8, borderColor: colors["green-300"], borderWidth: 1 }]}>
               <View style={{ padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Text>Endereço Origem: </Text>
-                <TextInput
+                {product.ENDERECO ? <TextInput
                   editable={false}
                   keyboardType='default'
                   value={product.ARMAZEM + " " + product.ENDERECO}
                   style={{padding: 10, flex: 1, textAlign: 'right', fontSize: 18, fontWeight: 'bold', color: colors['green-300']}}
                 />
+                : <Icon
+                name="md-barcode-outline"
+                size={30}
+                color={colors['gray-500']}
+              /> }
               </View>
-            </View>
+            </TouchableOpacity>
 
             <TouchableOpacity onPress={() => setOpenDestinationScanner(true)} style={[styles.item,{ width: '100%', backgroundColor: "#fff", borderRadius: 8, borderColor: product.ENDERECODESTINO ? colors["green-300"] : colors["red-300"], borderWidth: 1 }]}>
               <View style={{ padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
