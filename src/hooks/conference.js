@@ -12,9 +12,12 @@ const ConferenceProvider = ({ children }) => {
   const [invoiceItems, setInvoiceItems] = useState([])
 
   function handleModifySelectedInvoices(invoice) {
-    const isInArray = selectedInvoices.findIndex(selected => selected.notafiscal === invoice.notafiscal && selected.fornecedor === invoice.fornecedor)
+    const isInArray = selectedInvoices.findIndex(selected => selected.notafiscal.trim() === invoice.notafiscal.trim() && selected.fornecedor.trim() === invoice.fornecedor.trim())
+    console.log(isInArray)
+    console.log(selectedInvoices)
+    console.log(invoiceItems)
     if(isInArray === -1) { //Não encontrado
-      if(selectedInvoices.length > 0 && (selectedInvoices[0].fornecedor !== invoice.fornecedor || selectedInvoices[0].loja !== invoice.loja)) {
+      if(selectedInvoices.length > 0 && (selectedInvoices[0].fornecedor.trim() !== invoice.fornecedor.trim() || selectedInvoices[0].loja.trim() !== invoice.loja.trim())) {
         Alert.alert("Atenção!","Fornecedor diferente. Somente é possível agrupar notas de um mesmo fornecedor.");
         return
       }
@@ -23,8 +26,8 @@ const ConferenceProvider = ({ children }) => {
       setInvoiceItems([...invoiceItems, invoice.itens])
     } else {
 
-      const newSelectedInvoices = selectedInvoices.filter(selected => selected.notafiscal !== invoice.notafiscal || selected.serie !== invoice.serie || selected.fornecedor !== invoice.fornecedor || selected.loja !== invoice.loja)
-      const newInvoiceItems = invoiceItems.filter(it => it.notafiscal !== invoice.notafiscal && it.fornecedor !== invoice.fornecedor)
+      const newSelectedInvoices = selectedInvoices.filter(selected => selected.notafiscal.trim() !== invoice.notafiscal.trim() || selected.serie.trim() !== invoice.serie.trim() || selected.fornecedor.trim() !== invoice.fornecedor.trim() || selected.loja.trim() !== invoice.loja.trim())
+      const newInvoiceItems = invoiceItems.filter(it => it.notafiscal && it.notafiscal.trim() !== invoice.notafiscal.trim() && it.fornecedor.trim() !== invoice.fornecedor.trim())
       setInvoiceItems(newInvoiceItems)
       setSelectedInvoices(newSelectedInvoices)
     }
@@ -42,7 +45,7 @@ const ConferenceProvider = ({ children }) => {
 
   return (
     <ConferenceContext.Provider
-      value={{ selectedInvoices, handleModifySelectedInvoices, invoiceItems, handleCheckItem }}
+      value={{ selectedInvoices, setSelectedInvoices, handleModifySelectedInvoices, invoiceItems, setInvoiceItems, handleCheckItem }}
     >
       {children}
     </ConferenceContext.Provider>

@@ -9,14 +9,12 @@ import {
 import { colors } from '../../../styles/colors'
 import Scanner from '../../../components/scanner'
 import axios from 'axios'
-import { useUser } from '../../../hooks/user'
 import { useState } from 'react'
 import Icon from 'react-native-vector-icons/Ionicons'
 import { useNavigation } from '@react-navigation/native'
 import { useEnderecamento } from '../../../hooks/enderecamento'
 
 export default function Enderecamento() {
-  const { user, baseURL } = useUser()
   const { setAddressing, addressing, endereco, setEndereco } =
     useEnderecamento()
   const [openProductScanner, setOpenProductScanner] = useState(false)

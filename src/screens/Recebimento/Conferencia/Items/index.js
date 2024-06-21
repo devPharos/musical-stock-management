@@ -10,6 +10,8 @@ import {
   Modal,
   KeyboardAvoidingView,
   TextInput,
+  Alert,
+  ActivityIndicator,
 } from 'react-native'
 import { colors } from '../../../../styles/colors'
 import Icon from 'react-native-vector-icons/Ionicons'
@@ -26,11 +28,12 @@ export function Items({ navigation }) {
   const [openCameraReader, setOpenCameraReader] = useState(false);
   const [hasPermission, setHasPermission] = useState(null);
   const [loading, setLoading] = useState(false)
-  const { selectedInvoices, invoiceItems, handleModifySelectedInvoices } = useConference()
-  const { user, selectedPrinter } = useUser()
+  const { selectedInvoices, invoiceItems, setSelectedInvoices, setInvoiceItems, handleModifySelectedInvoices } = useConference()
+  const { user, selectedPrinter, setSelectedPrinter } = useUser()
   const [allItemsWereConferred, setAllItemsWereConferred] = useState(false)
   const [printerNotSelected, setPrinterNotSelected] = useState(false)
   const [openQuantityInform, setOpenQuantityInform] = useState(null)
+  const [checkdItems, setCheckedItems] = useState(0)
 
   useEffect(() => {
     const getBarCodeScannerPermissions = async () => {
@@ -41,7 +44,6 @@ export function Items({ navigation }) {
     getBarCodeScannerPermissions();
 }, []);
 
-
   async function handleBarCodeScanned({ type, data }) {
     if(loading) {
         return;
@@ -50,7 +52,7 @@ export function Items({ navigation }) {
 
     invoiceItems.map(invoice => {
       invoice.map(item => {
-        if(item.codigodebarras === data) {
+        if(item.codigodebarras.trim() === data.trim()) {
           filteredItems.push(item)
         }
         return item
@@ -66,20 +68,22 @@ export function Items({ navigation }) {
   };
 
   useEffect(() => {
-    let checkdItems = 0;
+    let newCheckedItems = 0;
 
     selectedInvoices.map(invoice => {
       invoice.itens.map(item => {
         if(item.qtdScan) {
-          checkdItems++
+          newCheckedItems++
         }
       })
     })
-    // console.log(invoiceItems.length, checkdItems)
 
-    if (checkdItems === invoiceItems.length) {
+    if (newCheckedItems === invoiceItems[0].length) {
       setAllItemsWereConferred(true)
+    } else {
+      setAllItemsWereConferred(false)
     }
+    setCheckedItems(newCheckedItems)
   },[openQuantityInform])
 
   function handleOpenCamera() {
@@ -93,8 +97,11 @@ export function Items({ navigation }) {
   }, [selectedPrinter])
 
   const handleButtonAction = () => {
+    setLoading(true)
     if (!selectedPrinter) {
       setPrinterNotSelected(true)
+      setLoading(false)
+      return
     }
 
     if (selectedPrinter) {
@@ -108,7 +115,7 @@ export function Items({ navigation }) {
         imprimeetiquetas: true,
       }
 
-      console.log(body)
+      // console.log(body)
 
       axios
         .post(`/wConfereNF`, body)
@@ -117,16 +124,36 @@ export function Items({ navigation }) {
             selectedInvoices.forEach(inv => {
               handleModifySelectedInvoices(inv)
             })
-            setTimeout(() => {
-              navigation.popToTop()
-            },200)
+            setSelectedInvoices([])
+            setInvoiceItems([])
+            setLoading(false)
+            Alert.alert('Atenção!',response.data.Message, [
+              {
+                text: 'Ok',
+                onPress: () => {
+                  navigation.popToTop()
+                }
+              }
+            ])
           }
         })
         .catch((error) => {
           if (error) {
             console.warn(error)
+            setLoading(false)
           }
         })
+    }
+  }
+
+  function handleOpenQuantityInform() {
+    // console.log(openQuantityInform)
+    const notFinished = openQuantityInform.filter((inform) => parseInt(inform.qtdScan) === 0 || parseInt(inform.qtdEmb) === 0 || parseInt(inform.qtdEmb) > parseInt(inform.qtdScan))
+    if(notFinished.length > 0) {
+      // console.log(notFinished)
+      Alert.alert('Atenção!','Preencha as quantidades conferidas e por embalagem.\n\nVerifique se a quantidade por embalagem está maior que a quantidade lida.')
+    } else {
+      setOpenQuantityInform(null)
     }
   }
 
@@ -136,7 +163,9 @@ export function Items({ navigation }) {
         source={require('../../../../assets/bg.png')}
         style={styles.content}
       >
-        {allItemsWereConferred ?
+        {loading ?
+        <ActivityIndicator color={colors['green-300']} />
+        : allItemsWereConferred ?
           <TouchableOpacity style={styles.button} onPress={() => handleButtonAction()}>
             <Text style={styles.buttonLabel}>
               Finalizar conferência
@@ -148,6 +177,30 @@ export function Items({ navigation }) {
             />
           </TouchableOpacity>
         :
+        checkdItems > 0 ?
+        <>
+        <TouchableOpacity style={styles.button} onPress={() => handleButtonAction()}>
+            <Text style={styles.buttonLabel}>
+              Finalizar conferência
+            </Text>
+            <Icon
+              name="md-barcode-outline"
+              size={30}
+              color={colors['gray-500']}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={() => handleOpenCamera()}>
+            <Text style={styles.buttonLabel}>
+              Continuar conferência
+            </Text>
+            <Icon
+              name="md-barcode-outline"
+              size={30}
+              color={colors['gray-500']}
+            />
+          </TouchableOpacity>
+          </>
+          :
           <TouchableOpacity style={styles.button} onPress={() => handleOpenCamera()}>
             <Text style={styles.buttonLabel}>
               Continuar conferência
@@ -237,26 +290,33 @@ export function Items({ navigation }) {
                   <Text style={{ fontWeight: 'bold', fontSize: 16 }}>Nota Fiscal: {inform.notafiscal.trim()} / {inform.serie.trim()}</Text>
                   <Text style={{ fontSize: 16 }}>Quantidade na nota: {inform.quantidade}</Text>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <TextInput 
-                    // value={inform.qtdScan ? inform.qtdScan.toString() : null} 
-                    onChangeText={val => inform.qtdScan = val}
-                    autoFocus={index === 0 ? true : false}
-                    keyboardType='numeric'
-                    placeholder='0' 
-                    style={{ fontSize: 24, width: '40%', fontWeight: 'bold', padding: 16, borderWidth: 1, borderTopLeftRadius: 16, borderBottomLeftRadius: 16, borderColor: '#ccc', textAlign: 'center' }}
-                  />
-                  <TextInput 
-                    value={inform.quantidade.toString()}
-                    editable={false}
-                    keyboardType='numeric' 
-                    placeholder='0' 
-                    style={{ fontSize: 24, width: '40%', fontWeight: 'bold', padding: 16, borderWidth: 1, borderLeftWidth: 0,  borderTopRightRadius: 16, borderBottomRightRadius: 16, borderColor: '#ccc', textAlign: 'center' }}
-                  />
+                  <View style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-start', gap: 6, width: '40%' }}>
+                    
+                    <TextInput 
+                      // value={inform.qtdScan ? inform.qtdScan.toString() : null} 
+                      onChangeText={val => inform.qtdScan = parseInt(val)}
+                      autoFocus={index === 0 ? true : false}
+                      keyboardType='numeric'
+                      placeholder={inform.qtdScan.toString()}
+                      style={{ fontSize: 24, width: '100%', fontWeight: 'bold', padding: 16, borderWidth: 1, borderTopLeftRadius: 16, borderBottomLeftRadius: 16, borderColor: '#ccc', textAlign: 'center' }}
+                    />
+                    <Text style={{ width:'100%',textAlign: 'center' }}>Qtd.</Text>
+                  </View>
+                  <View style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-start', gap: 6, width: '40%' }}>
+                    <TextInput 
+                      editable={true}
+                      onChangeText={val => inform.qtdEmb = parseInt(val)}
+                      keyboardType='numeric' 
+                      placeholder={inform.qtdEmb.toString()}
+                      style={{ fontSize: 24, width: '100%', fontWeight: 'bold', padding: 16, borderWidth: 1, borderLeftWidth: 0,  borderTopRightRadius: 16, borderBottomRightRadius: 16, borderColor: '#ccc', textAlign: 'center' }}
+                    />
+                    <Text style={{ width:'100%',textAlign: 'center' }}>Qtd. / Emb.</Text>
+                  </View>
                   </View>
                 </View>
               })
             }
-            <TouchableOpacity style={{ backgroundColor: colors["green-300"], width: 200, borderRadius: 8, marginTop: 24 }} onPress={() => setOpenQuantityInform(null)}>
+            <TouchableOpacity style={{ backgroundColor: colors["green-300"], width: 200, borderRadius: 8, marginTop: 24 }} onPress={() => handleOpenQuantityInform()}>
               <Text style={{ color: "#FFF", textAlign: 'center', fontSize: 18, fontWeight: 'bold', padding: 16 }}>Gravar quantidades</Text>
             </TouchableOpacity>
             </View>

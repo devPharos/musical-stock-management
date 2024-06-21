@@ -13,7 +13,7 @@ import { useUser } from '../../hooks/user'
 import { PrinterCardItem } from '../../components/printerCardItem'
 
 export default function PrinterSelection({ navigation }) {
-  const { user, selectedPrinter, baseURL } = useUser()
+  const { user, selectedPrinter, baseURL, setSelectedPrinter } = useUser()
   const [printers, setPrinters] = useState([])
 
   useEffect(() => {
@@ -22,6 +22,8 @@ export default function PrinterSelection({ navigation }) {
       .then((response) => {
         const availablePrinters = response.data.IMPRESSORAS
         setPrinters(availablePrinters)
+        // setSelectedPrinter(availablePrinters[2])
+        
       })
       .catch((error) => {
         if (error) {

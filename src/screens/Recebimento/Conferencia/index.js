@@ -21,7 +21,7 @@ import { useConference } from '../../../hooks/conference'
 
 export default function Conferencia({ navigation }) {
   const { user, baseURL } = useUser()
-  const { selectedInvoices } = useConference()
+  const { selectedInvoices, setSelectedInvoices, setInvoiceItems } = useConference()
   const [loading, setLoading] = useState(true)
 
   const [invoices, setInvoices] = useState([]);
@@ -30,6 +30,8 @@ export default function Conferencia({ navigation }) {
     axios
       .get(`/wBuscaNF`)
       .then((response) => {
+        setSelectedInvoices([])
+        setInvoiceItems([])
         setInvoices(response.data.notas)
         setLoading(false)
       })

@@ -14,11 +14,17 @@ export function ItemsCard({ itemData }) {
           const body = {
             produto: itemData.codigodebarras,
             quantidade: itemData.quantidade,
-            impressora: selectedPrinter?.codigo,
+            impressora: 'RECEBI',
           }
           axios
             .post(`/wNacionaliz`, body)
             .then((response) => {
+              // console.log(response)
+              Alert.alert('Atenção!',response.data.Message, [
+                {
+                  text: 'Ok'
+                }
+              ])
             })
             .catch((error) => {
               if (error) {

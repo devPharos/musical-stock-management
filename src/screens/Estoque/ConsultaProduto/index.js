@@ -22,17 +22,18 @@ import {
     const [ product, setProduct ] = useState(null)
     const [openProductScanner, setOpenProductScanner] = useState(false)
     const [loading, setLoading] = useState(false)
+    const [opennedArmazem, setOpennedArmazem] = useState(null)
     const drawer = useRef(null);
   
     function getProductData(find) {
       setLoading(true)
-      console.log(find)
+      // console.log(find)
       axios
         .get(`/wBuscaProd?Produto=${find}`)
         .then(({ data }) => {
           setLoading(false)
   
-          console.log({ data })
+          // console.log({ data })
   
           if(data.PRODUTOS.length > 0) {
             setProduct(data)
@@ -42,6 +43,7 @@ import {
             setProduct(null)
           }
         }).catch(err => {
+          // console.log({ err })
           setLoading(false)
         })
     }
@@ -108,9 +110,28 @@ import {
                   <View style={{ padding: 4,flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',backgroundColor: "#EFEFEF" }}>
                     <Text>Reservado </Text><Text>{saldo.RESERVA}</Text>
                   </View>
-                  <TouchableOpacity onPress={() => null} style={{ borderWidth: 1, borderColor: '#ccc', backgroundColor: '#efefef', textAlign: 'center', paddingVertical: 6, paddingHorizontal: 6, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 24 }}>
-                    <Text>Endereços do Armazém 01</Text>
+                  <TouchableOpacity onPress={() => setOpennedArmazem(opennedArmazem === saldo.ARMAZEM ? null : saldo.ARMAZEM)} style={{ borderWidth: 1, borderColor: '#ccc', backgroundColor: '#efefef', textAlign: 'center', paddingVertical: 6, paddingHorizontal: 6, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 24 }}>
+                    <Text>Endereços do Armazém {saldo.ARMAZEM}</Text>
+                    <Icon name={opennedArmazem === saldo.ARMAZEM ? 'chevron-up-outline': 'chevron-down-outline'} size={18} color="#111" />
                   </TouchableOpacity>
+                  
+                  { opennedArmazem === saldo.ARMAZEM && <View>
+                    <View key={index} style={{ padding: 4,flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',backgroundColor: index % 2 != 0 ? "#EFEFEF" : 'transparent' }}>
+                      <Text style={{ width: '44%' }}>Endereço</Text>
+                      <Text style={{ width: '28%',textAlign: 'right' }}>Saldo</Text>
+                      <Text style={{ width: '28%',textAlign: 'right' }}>Empen.</Text>
+                    </View>
+                    {saldo.ENDERECOS.map((endereco,index) => {
+                    return <View key={index} style={{ padding: 4,flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',backgroundColor: index % 2 != 0 ? "#EFEFEF" : 'transparent' }}>
+                      <Text style={{ width: '44%' }}>{endereco.DESCRICAO} </Text>
+                      <Text style={{ width: '28%',textAlign: 'right' }}>{endereco.QUANTIDADE}</Text>
+                      <Text style={{ width: '28%',textAlign: 'right' }}>{endereco.EMPENHO}</Text>
+                    </View>
+                    }
+                    )}
+                  </View>}
+
+
                 </View>
               </View>
               )
