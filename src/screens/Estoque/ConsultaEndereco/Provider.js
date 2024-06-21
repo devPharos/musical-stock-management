@@ -25,7 +25,7 @@ export default function ConsultaEnderecoProvider({ navigation }) {
             headerLeft: () => (
               <TouchableOpacity onPress={() => navigation.goBack()}>
                 <Icon
-                  name="md-chevron-back-sharp"
+                  name="chevron-back-sharp"
                   size={30}
                   color={colors['gray-500']}
                 />

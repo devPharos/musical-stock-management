@@ -70,7 +70,7 @@ export default function Confirmacao() {
 
         <Pressable style={styles.button} onPress={handleEndConference}>
           <Text style={styles.buttonLabel}>Finalizar conferência</Text>
-          <Icon name="md-arrow-forward" size={20} color={colors['gray-500']} />
+          <Icon name="arrow-forward" size={20} color={colors['gray-500']} />
         </Pressable>
       </ImageBackground>
     </SafeAreaView>

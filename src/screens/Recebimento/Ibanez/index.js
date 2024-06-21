@@ -21,14 +21,14 @@ import { useEffect, useState, useRef } from 'react'
 import axios from 'axios'
 import Icon from 'react-native-vector-icons/Ionicons'
 import { useUser } from '../../../hooks/user'
-import { BarCodeScanner } from 'expo-barcode-scanner'
+import { CameraView, useCameraPermissions } from 'expo-camera'
 import { RFPercentage } from 'react-native-responsive-fontsize'
 import { Camera, useCameraDevice } from 'react-native-vision-camera'
 
 export default function Ibanez({ navigation }) {
   const [sequencial, setSequencial] = useState(1)
   const [openCameraReader, setOpenCameraReader] = useState(null);
-  const [hasPermission, setHasPermission] = useState(null);
+  const [hasPermission, setHasPermission] = useCameraPermissions()
   const [fotos, setFotos] = useState([])
   const { ambiente,refreshAuthentication, user } = useUser()
   const [loading, setLoading] = useState(true)
@@ -40,20 +40,10 @@ export default function Ibanez({ navigation }) {
   const [printed, setPrinted] = useState(true)
   const [previewPhoto, setPreviewPhoto] = useState(null)
   const [openCamera, setOpenCamera] = useState(false)
+  const [lantern, setLantern] = useState(false)
 
   const drawer = useRef(null);
   const cameraRef = useRef(null)
-
-  useEffect(() => {
-    const getBarCodeScannerPermissions = async () => {
-      const { status } = await BarCodeScanner.requestPermissionsAsync();
-      setHasPermission(status === 'granted');
-    };
-    if(!hasPermission) {
-      getBarCodeScannerPermissions();
-    }
-  }, []);
-
 
   async function handleBarCodeScanned({ type, data }) {
     const inCamera = openCameraReader;
@@ -448,8 +438,13 @@ export default function Ibanez({ navigation }) {
                         <ScrollView>
                             <View style={{ width: '100%', paddingVertical: 12 }}>
                                 <View style={{ width: '100%', height: RFPercentage(78), overflow: 'hidden', zIndex: 10, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
-                                    <BarCodeScanner
-                                    onBarCodeScanned={e => handleBarCodeScanned(e)}
+                                    <CameraView
+                                    autofocus={true}
+                                    enableTorch={lantern}
+                                    barcodeScannerSettings={{
+                                      barcodeTypes: ["ean13","ean8","qr"],
+                                    }}
+                                    onBarcodeScanned={e => handleBarCodeScanned(e)}
                                     style={{ width: RFPercentage(45), height: RFPercentage(100) }}
                                     />
 
@@ -458,6 +453,7 @@ export default function Ibanez({ navigation }) {
                                       <Text style={{ color: "#fff", fontSize: 14, textAlign: 'center' }}><Text style={{ fontSize: 18, fontWeight: 'bold' }}>{openCameraReader.ETIQUETA}</Text></Text>
                                     </View>
                                 </View>
+                                <TouchableOpacity onPress={() => setLantern(!lantern)} style={{ width: '100%',paddingVertical: 16, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}><Icon name='flashlight' size={24} /></TouchableOpacity>
                             </View>
                         </ScrollView>
                     </KeyboardAvoidingView>

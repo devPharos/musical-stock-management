@@ -106,7 +106,7 @@ export default function Enderecamento() {
                 <Text style={styles.buttonLabel}>Produto</Text>
                 {addressing.CODIGO !== '' && (
                   <Icon
-                    name="md-checkmark-circle"
+                    name="checkmark-circle"
                     size={20}
                     color={colors['green-300']}
                   />
@@ -120,7 +120,7 @@ export default function Enderecamento() {
                   {addressing.CODIGO !== '' ? addressing.CODIGO : 'Escanear'}
                 </Text>
                 <Icon
-                  name="md-barcode-outline"
+                  name="barcode-outline"
                   size={30}
                   color={colors['gray-500']}
                 />
@@ -132,7 +132,7 @@ export default function Enderecamento() {
                 <Text style={styles.buttonLabel}>Endereço</Text>
                 {endereco.DESCRICAO !== '' && (
                   <Icon
-                    name="md-checkmark-circle"
+                    name="checkmark-circle"
                     size={20}
                     color={colors['green-300']}
                   />
@@ -146,7 +146,7 @@ export default function Enderecamento() {
                   {endereco.ENDERECO !== '' ? endereco.ENDERECO : 'Escanear'}
                 </Text>
                 <Icon
-                  name="md-barcode-outline"
+                  name="barcode-outline"
                   size={30}
                   color={colors['gray-500']}
                 />
@@ -174,7 +174,7 @@ export default function Enderecamento() {
                 Continuar
               </Text>
               <Icon
-                name="md-arrow-forward"
+                name="arrow-forward"
                 size={20}
                 color={
                   !(addressing.CODIGO !== '' && endereco.DESCRICAO !== '')

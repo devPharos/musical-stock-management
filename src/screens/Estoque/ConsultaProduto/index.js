@@ -181,7 +181,7 @@ import {
                       />
                     ) : (
                       <Icon
-                        name="md-barcode-outline"
+                        name="barcode-outline"
                         size={20}
                         color={colors['gray-500']}
                       />

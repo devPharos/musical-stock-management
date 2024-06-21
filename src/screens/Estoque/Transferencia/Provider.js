@@ -28,7 +28,7 @@ export default function TransferenciaRProvider({ navigation }) {
             headerLeft: () => (
               <TouchableOpacity onPress={() => navigation.goBack()}>
                 <Icon
-                  name="md-chevron-back-sharp"
+                  name="chevron-back-sharp"
                   size={30}
                   color={colors['gray-500']}
                 />
@@ -45,7 +45,7 @@ export default function TransferenciaRProvider({ navigation }) {
             headerLeft: () => (
               <TouchableOpacity onPress={() => navigation.goBack()}>
                 <Icon
-                  name="md-chevron-back-sharp"
+                  name="chevron-back-sharp"
                   size={30}
                   color={colors['gray-500']}
                 />

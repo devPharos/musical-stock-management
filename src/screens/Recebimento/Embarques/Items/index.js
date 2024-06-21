@@ -19,28 +19,19 @@ import PrinterButton from '../../../../components/PrinterButton'
 import { useUser } from '../../../../hooks/user'
 import axios from 'axios'
 import { useConference } from '../../../../hooks/conference'
-import { BarCodeScanner } from 'expo-barcode-scanner'
 import { RFPercentage } from 'react-native-responsive-fontsize'
 import ReceiptModal from '../../../../components/receiptModal'
+import { CameraView, useCameraPermissions } from 'expo-camera'
 
 export function Items({ navigation }) {
   const [openCameraReader, setOpenCameraReader] = useState(false);
-  const [hasPermission, setHasPermission] = useState(null);
+  const [hasPermission, setHasPermission] = useCameraPermissions()
   const [loading, setLoading] = useState(false)
   const { selectedInvoices, invoiceItems, handleModifySelectedInvoices } = useConference()
   const { user, selectedPrinter, baseURL } = useUser()
   const [allItemsWereConferred, setAllItemsWereConferred] = useState(false)
   const [printerNotSelected, setPrinterNotSelected] = useState(false)
   const [openQuantityInform, setOpenQuantityInform] = useState(null)
-
-  useEffect(() => {
-    const getBarCodeScannerPermissions = async () => {
-      const { status } = await BarCodeScanner.requestPermissionsAsync();
-      setHasPermission(status === 'granted');
-    };
-
-    getBarCodeScannerPermissions();
-}, []);
 
 
   async function handleBarCodeScanned({ type, data }) {
@@ -140,7 +131,7 @@ export function Items({ navigation }) {
               Finalizar conferência
             </Text>
             <Icon
-              name="md-barcode-outline"
+              name="barcode-outline"
               size={30}
               color={colors['gray-500']}
             />
@@ -151,7 +142,7 @@ export function Items({ navigation }) {
               Continuar conferência
             </Text>
             <Icon
-              name="md-barcode-outline"
+              name="barcode-outline"
               size={30}
               color={colors['gray-500']}
             />
@@ -202,8 +193,8 @@ export function Items({ navigation }) {
                       <ScrollView>
                           <View style={{ width: '100%', paddingVertical: 12 }}>
                               <View style={{ width: '100%', height: RFPercentage(78), overflow: 'hidden', zIndex: 10, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
-                                  <BarCodeScanner
-                                  onBarCodeScanned={e => handleBarCodeScanned(e)}
+                                  <CameraView
+                                  onBarcodeScanned={e => handleBarCodeScanned(e)}
                                   style={{ width: RFPercentage(45), height: RFPercentage(100) }}
                                   />
                               </View>

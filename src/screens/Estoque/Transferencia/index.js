@@ -231,7 +231,7 @@ export default function Transferencia({ navigation }) {
                   style={{padding: 10, flex: 1, textAlign: 'right', fontSize: 18, fontWeight: 'bold', color: colors['green-300']}}
                 />
                 : <Icon
-                name="md-barcode-outline"
+                name="barcode-outline"
                 size={30}
                 color={colors['gray-500']}
               /> }
@@ -248,7 +248,7 @@ export default function Transferencia({ navigation }) {
                   style={{padding: 10, flex: 1, textAlign: 'right', fontSize: 18, fontWeight: 'bold', color: colors['green-300']}}
                 />
                 : <Icon
-                name="md-barcode-outline"
+                name="barcode-outline"
                 size={30}
                 color={colors['gray-500']}
               />}
@@ -266,7 +266,7 @@ export default function Transferencia({ navigation }) {
                   Confirmar Transferência
                 </Text>
                 <Icon
-                  name="md-arrow-forward"
+                  name="arrow-forward"
                   size={20}
                   color={colors['gray-500']
                   }
@@ -282,7 +282,7 @@ export default function Transferencia({ navigation }) {
                 onPress={() => setOpenProductScanner(true)}
               >
                 <Icon
-                  name="md-barcode-outline"
+                  name="barcode-outline"
                   size={30}
                   color={colors['gray-500']}
                 />
