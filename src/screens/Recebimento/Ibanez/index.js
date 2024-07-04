@@ -28,7 +28,6 @@ import { Camera, useCameraDevice } from 'react-native-vision-camera'
 export default function Ibanez({ navigation }) {
   const [sequencial, setSequencial] = useState(1)
   const [openCameraReader, setOpenCameraReader] = useState(null);
-  const [hasPermission, setHasPermission] = useCameraPermissions()
   const [fotos, setFotos] = useState([])
   const { ambiente,refreshAuthentication, user } = useUser()
   const [loading, setLoading] = useState(true)
@@ -41,9 +40,17 @@ export default function Ibanez({ navigation }) {
   const [previewPhoto, setPreviewPhoto] = useState(null)
   const [openCamera, setOpenCamera] = useState(false)
   const [lantern, setLantern] = useState(false)
+  const [permission, requestPermission] = useCameraPermissions()
+
+  useEffect(() => {
+      if (permission && !permission.granted) {
+        requestPermission()
+      }
+  }, [permission])
 
   const drawer = useRef(null);
   const cameraRef = useRef(null)
+
 
   async function handleBarCodeScanned({ type, data }) {
     const inCamera = openCameraReader;
@@ -137,10 +144,22 @@ export default function Ibanez({ navigation }) {
 
   async function handleInspecao() {
     setLoading(true)
-    if(!selectedPendente.OBSERVACOES && selectedPendente.CONFORMIDADE === 'N') {
-      setLoading(false)
-      Alert.alert("Atenção!","Obrigatório relatar os problemas encontrados.")
-      return false
+    if(selectedPendente.CONFORMIDADE === 'N') {
+      if(!selectedPendente.MOTIVO.length) {
+        setLoading(false)
+        Alert.alert("Atenção!","Obrigatório selecionar ao menos um motivo.")
+        return false
+      }
+      if(!selectedPendente.OBSERVACOES) {
+        setLoading(false)
+        Alert.alert("Atenção!","Obrigatório relatar os problemas encontrados.")
+        return false
+      }
+      if(!fotos.length) {
+        setLoading(false)
+        Alert.alert("Atenção!","Obrigatório fotografar o problema encontrado.")
+        return false
+      }
     }
     if(!selectedPendente.NUMSERIE) {
       setLoading(false)
@@ -161,10 +180,12 @@ export default function Ibanez({ navigation }) {
       NumSerie: selectedPendente.NUMSERIE,
       Etiqueta: selectedPendente.ETIQUETA,
       Motivo: selectedPendente.MOTIVO && selectedPendente.MOTIVO.length > 0 ? selectedPendente.MOTIVO.join() : '',
-      BloqVenda: selectedPendente.CONFORMIDADE === 'S' ? 'N' : selectedPendente.BLOQVENDA,
+      BloqVenda: selectedPendente.CONFORMIDADE === 'S' ? 'N' : (selectedPendente.BLOQVENDA || 'N'),
       Conformidade: selectedPendente.CONFORMIDADE,
       Observacoes: selectedPendente.OBSERVACOES
     }
+
+    setLoading(false)
     try {
       axios
         .post(`/wIbanez`, body)
@@ -239,10 +260,6 @@ export default function Ibanez({ navigation }) {
     ])
   }
 
-  function toggleCameraType() {
-    setType(current => (current === CameraType.back ? CameraType.front : CameraType.back));
-  }
-
   function handleEAN() {
     setBuscarPor('ean')
     setOpenCameraReader({ ETIQUETA: 'EAN do produto' })
@@ -295,7 +312,7 @@ export default function Ibanez({ navigation }) {
             <Text style={{ textAlign: 'center', fontWeight: 'bold', color: selectedPendente.CONFORMIDADE === 'N' ? "#FFF" : "#111" }}>Apresentou Problemas</Text>
           </Pressable>
 
-          <View style={{ flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', paddingLeft: 32 }}>
+          <View style={{ flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', paddingHorizontal: 16, maxWidth: 280 }}>
           { selectedPendente.CONFORMIDADE === 'N' && <Pressable onPress={() => setSelectedPendente({...selectedPendente, BLOQVENDA: selectedPendente.BLOQVENDA != 'S' ? 'S' : 'N' })} style={{ marginTop: 12, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8 }}>
             <View style={{ width: 24,height: 24, borderWidth: 1, borderColor: "#868686",flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
               {selectedPendente.BLOQVENDA === 'S' && <Icon name="checkmark-outline" size={20} color="#f00" />}
@@ -307,11 +324,11 @@ export default function Ibanez({ navigation }) {
 
           { selectedPendente.CONFORMIDADE === 'N' ? 
           motivos.map((motivo, index) => {
-            return <TouchableOpacity key={index} onPress={() => handleMotivo(index)} style={{ marginTop: 12, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8 }}>
+            return <TouchableOpacity key={index} onPress={() => handleMotivo(index)} style={{ marginTop: 12, flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', gap: 8 }}>
             <View style={{ width: 24,height: 24, borderWidth: 1, borderColor: "#868686",flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
               {selectedPendente.MOTIVO?.includes(motivo.CHAVE.trim()) && <Icon name="checkmark-outline" size={20} color="#f00" />}
             </View>
-            <Text>{motivo.CHAVE.trim()} - {motivo.DESCRICAO}</Text>
+            <Text style={{ fontSize: 12 }}>{motivo.CHAVE.trim()} - {motivo.DESCRICAO}</Text>
           </TouchableOpacity>
           })
           : null}
@@ -441,9 +458,9 @@ export default function Ibanez({ navigation }) {
                                     <CameraView
                                     autofocus={true}
                                     enableTorch={lantern}
-                                    barcodeScannerSettings={{
-                                      barcodeTypes: ["ean13","ean8","qr"],
-                                    }}
+                                    // barcodeScannerSettings={{
+                                    //   barcodeTypes: ["ean13","ean8","qr"],
+                                    // }}
                                     onBarcodeScanned={e => handleBarCodeScanned(e)}
                                     style={{ width: RFPercentage(45), height: RFPercentage(100) }}
                                     />

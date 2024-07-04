@@ -28,7 +28,7 @@ export default function DrawerProfile({ navigation, mainMenu }) {
   onDrawerClose={handleCloseDrawer}
   unmountOnBlur={true}
   renderNavigationView={navigationView}>
-  <StackNavigator mainMenu={mainMenu} setOpenProfile={setOpenProfile} />
+  <StackNavigator navigation={navigation} mainMenu={mainMenu} setOpenProfile={setOpenProfile} />
 </DrawerLayoutAndroid></SafeAreaView>;
 }
 

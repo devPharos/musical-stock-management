@@ -1,22 +1,24 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
+import Icon from 'react-native-vector-icons/Ionicons'
 import TopTabs from '../TopTabs';
 import ConferenciaRootProvider from '../../screens/Recebimento/Conferencia/Provider';
 import IbanezRootProvider from '../../screens/Recebimento/Ibanez/Provider';
 import EmbarquesRootProvider from '../../screens/Recebimento/Embarques/Provider';
 import { useUser } from '../../hooks/user';
 import { colors } from '../../styles/colors';
-import ProfileButton from '../Header/ProfileButton';
+// import ProfileButton from '../Header/ProfileButton';
 import ConfigButton from '../Header/ConfigButton';
 import EnderecamentoRProvider from '../../screens/Estoque/Enderecamento/Provider';
 import TransferenciaRProvider from '../../screens/Estoque/Transferencia/Provider';
 import ConsultaProdutoProvider from '../../screens/Estoque/ConsultaProduto/Provider';
 import ConsultaEnderecoProvider from '../../screens/Estoque/ConsultaEndereco/Provider';
 import LoteNumseqRootProvider from '../../screens/Recebimento/LoteNumseq/Provider';
+import { Text, TouchableOpacity } from 'react-native';
 
 const Stack = createNativeStackNavigator()
 
-const StackNavigator = ({ mainMenu, setOpenProfile }) => {
+const StackNavigator = ({ navigation, mainMenu, setOpenProfile }) => {
     const { ambiente } = useUser();
   return <Stack.Navigator
   initialRouteName="TopTabs"
@@ -26,8 +28,11 @@ const StackNavigator = ({ mainMenu, setOpenProfile }) => {
     headerStyle: { backgroundColor: ambiente === 'producao' ? colors['green-300'] : colors['blue-300'] },
     headerRight: () => (
       <>
-        <ProfileButton setOpenProfile={setOpenProfile} />
+        {/* <ProfileButton setOpenProfile={setOpenProfile} /> */}
         <ConfigButton />
+        <TouchableOpacity onPress={() => navigation.push('Login')} style={{margin: 8, padding: 8 }}>
+            <Icon name="exit-outline" size={24} color={colors['gray-500']} />
+        </TouchableOpacity>
       </>
     ),
   }}

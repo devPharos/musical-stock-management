@@ -3,7 +3,13 @@ import { useState, useEffect } from 'react'
 import { ActivityIndicator, SafeAreaView, StyleSheet, TextInput } from 'react-native'
 export default function Scanner({ handleCodeScanned, loading }) {
   const [scanned, setScanned] = useState(false)
-  const [hasPermission, setHasPermission] = useCameraPermissions();
+  const [permission, requestPermission] = useCameraPermissions()
+
+  useEffect(() => {
+      if (permission && !permission.granted) {
+        requestPermission()
+      }
+  }, [permission])
 
   const handleBarCodeScanned = ({ data }) => {
     if(loading) {
@@ -18,7 +24,7 @@ export default function Scanner({ handleCodeScanned, loading }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      { loading || !hasPermission ? <ActivityIndicator />
+      { loading || !permission ? <ActivityIndicator />
       :
       <>
         <CameraView

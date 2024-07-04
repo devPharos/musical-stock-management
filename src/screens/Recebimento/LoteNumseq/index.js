@@ -28,15 +28,20 @@ import { CameraView, useCameraPermissions } from 'expo-camera'
   
 export default function LoteNumseq({ navigation }) {
   const [openCameraReader, setOpenCameraReader] = useState(null);
-  const [hasPermission, setHasPermission] = useCameraPermissions();
   const { ambiente, user, refreshAuthentication } = useUser()
   const [loading, setLoading] = useState(true)
   const [pendentes, setPendentes] = useState(null)
   const [selectedLote, setSelectedLote] = useState(null)
   const [buscarPor, setBuscarPor] = useState('lote')
+  const [permission, requestPermission] = useCameraPermissions()
+
+  useEffect(() => {
+      if (permission && !permission.granted) {
+        requestPermission()
+      }
+  }, [permission])
 
   const drawer = useRef(null);
-
 
   async function handleBarCodeScanned({ type, data }) {
     // const inCamera = openCameraReader;

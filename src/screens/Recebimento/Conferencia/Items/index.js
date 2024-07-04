@@ -26,7 +26,6 @@ import { RFPercentage } from 'react-native-responsive-fontsize'
 
 export function Items({ navigation }) {
   const [openCameraReader, setOpenCameraReader] = useState(false);
-  const [hasPermission, setHasPermission] = useCameraPermissions();
   const [loading, setLoading] = useState(false)
   const { selectedInvoices, invoiceItems, setSelectedInvoices, setInvoiceItems, handleModifySelectedInvoices } = useConference()
   const { user, selectedPrinter, setSelectedPrinter } = useUser()
@@ -34,6 +33,13 @@ export function Items({ navigation }) {
   const [printerNotSelected, setPrinterNotSelected] = useState(false)
   const [openQuantityInform, setOpenQuantityInform] = useState(null)
   const [checkdItems, setCheckedItems] = useState(0)
+  const [permission, requestPermission] = useCameraPermissions()
+
+  useEffect(() => {
+      if (permission && !permission.granted) {
+        requestPermission()
+      }
+  }, [permission])
 
   async function handleBarCodeScanned({ type, data }) {
     if(loading) {

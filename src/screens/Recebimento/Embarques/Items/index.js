@@ -25,13 +25,19 @@ import { CameraView, useCameraPermissions } from 'expo-camera'
 
 export function Items({ navigation }) {
   const [openCameraReader, setOpenCameraReader] = useState(false);
-  const [hasPermission, setHasPermission] = useCameraPermissions()
   const [loading, setLoading] = useState(false)
   const { selectedInvoices, invoiceItems, handleModifySelectedInvoices } = useConference()
   const { user, selectedPrinter, baseURL } = useUser()
   const [allItemsWereConferred, setAllItemsWereConferred] = useState(false)
   const [printerNotSelected, setPrinterNotSelected] = useState(false)
   const [openQuantityInform, setOpenQuantityInform] = useState(null)
+  const [permission, requestPermission] = useCameraPermissions()
+
+  useEffect(() => {
+      if (permission && !permission.granted) {
+        requestPermission()
+      }
+  }, [permission])
 
 
   async function handleBarCodeScanned({ type, data }) {
