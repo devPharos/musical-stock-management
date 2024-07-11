@@ -5685,6 +5685,11 @@ react-native-tab-view@^3.5.2:
   dependencies:
     use-latest-callback "^0.1.5"
 
+react-native-video@^6.4.0:
+  version "6.4.0"
+  resolved "https://registry.yarnpkg.com/react-native-video/-/react-native-video-6.4.0.tgz#d8a441f34f183aaf26e24cffddc51bb8cb3941f2"
+  integrity sha512-P7qIB/HLyJ0SgMbBdpkMyjk78dN3tBrn8lL0mx6ix7r8gQ/8+faaEAYLXFe0P7ogoJc8lW++Zl5zXH1hJLjkuw==
+
 react-native-vision-camera@^4.3.2:
   version "4.3.2"
   resolved "https://registry.yarnpkg.com/react-native-vision-camera/-/react-native-vision-camera-4.3.2.tgz#4acf80b62328275a69b22cd142f71a4e4aa2c12e"

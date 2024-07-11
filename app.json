@@ -2,7 +2,7 @@
   "expo": {
     "name": "Musical Stock",
     "slug": "musical-stock",
-    "version": "1.0.19",
+    "version": "1.0.22",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "icon": "./src/assets/icon.png",

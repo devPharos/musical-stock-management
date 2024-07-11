@@ -14,10 +14,10 @@ import {
   } from 'react-native'
   import Icon from 'react-native-vector-icons/Ionicons'
   import { colors } from '../../../styles/colors'
-  import { useRef, useState } from 'react'
+  import { useEffect, useRef, useState } from 'react'
   import Scanner from '../../../components/scanner'
   import axios from 'axios'
-  export default function ConsultaProduto() {
+  export default function ConsultaProduto({ search = '', setSearch = () => null }) {
   
     const [ product, setProduct ] = useState(null)
     const [openProductScanner, setOpenProductScanner] = useState(false)
@@ -47,6 +47,12 @@ import {
           setLoading(false)
         })
     }
+
+    useEffect(() => {
+      if(search) {
+        getProductData(search);
+      }
+    },[search])
   
     const onCodeProductScanned = (code) => {
       getProductData(code)
@@ -60,7 +66,7 @@ import {
             
             <View style={{ flex: 1, position: 'relative' }}>
               <Image source={{ uri: product.PRODUTOS[0].IMAGEMGRANDE}} style={{ width: 284, height: 284 }} />
-              <Pressable style={{ position: 'absolute', top: 25, left: 10, padding: 4, flexDirection: 'row', alignItems: 'center', backgroundColor: "#efefef", borderRadius: 8 }} onPress={() => drawer.current.closeDrawer()}>
+              <Pressable style={{ position: 'absolute', top: 25, left: 10, padding: 4, flexDirection: 'row', alignItems: 'center', backgroundColor: "#efefef", borderRadius: 8 }} onPress={() => search ? setSearch(null) : drawer.current.closeDrawer()}>
                 <Icon name="chevron-back-outline" size={18} color="#868686" /><Text style={{ fontSize: 12, color: "#868686" }}>Voltar</Text>
               </Pressable>
               <View style={{ position: 'absolute', bottom: 25, left: 10, backgroundColor: "#FFF", padding: 4, gap: 4, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#efefef', borderRadius: 8 }}>
@@ -87,7 +93,8 @@ import {
             product.PRODUTOS[0].SALDOS.map((saldo, index) => {
               return (
               <View key={index} style={{ marginVertical: 12, borderStyle: 'dashed', borderTopWidth: 1, borderColor: "#ccc", paddingVertical: 12 }}>
-                <Text style={{ textAlign: 'center', color: "#111", fontSize: 18 }}>Armazém: <Text style={{ fontWeight: 'bold' }}>{saldo.ARMAZEM}</Text></Text>
+                {console.log(saldo)}
+                <Text style={{ textAlign: 'center', color: "#111", fontSize: 14 }}>Armazém: <Text style={{ fontWeight: 'bold' }}>{saldo.ARMAZEM} - {saldo.ARMAZEMNOME}</Text></Text>
                 <View>
                   <View style={{ padding: 4,flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',backgroundColor: "#EFEFEF" }}>
                     <Text>Atual </Text><Text>{saldo.ATUAL}</Text>

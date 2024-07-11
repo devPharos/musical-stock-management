@@ -24,6 +24,8 @@ import { useUser } from '../../../hooks/user'
 import { CameraView, useCameraPermissions } from 'expo-camera'
 import { RFPercentage } from 'react-native-responsive-fontsize'
 import { Camera, useCameraDevice } from 'react-native-vision-camera'
+import ConsultaProduto from '../../Estoque/ConsultaProduto'
+import Video from 'react-native-video'
 
 export default function Ibanez({ navigation }) {
   const [sequencial, setSequencial] = useState(1)
@@ -32,15 +34,22 @@ export default function Ibanez({ navigation }) {
   const { ambiente,refreshAuthentication, user } = useUser()
   const [loading, setLoading] = useState(true)
   const [loadingFoto, setLoadingFoto] = useState(false)
+  const [videoIsRecording, setVideoIsRecording] = useState(false)
   const [pendentes, setPendentes] = useState(null)
   const [selectedPendente, setSelectedPendente] = useState(null)
   const [buscarPor, setBuscarPor] = useState('etiqueta')
   const [motivos, setMotivos] = useState(null)
   const [printed, setPrinted] = useState(true)
   const [previewPhoto, setPreviewPhoto] = useState(null)
+  const [previewVideo, setPreviewVideo] = useState(null)
   const [openCamera, setOpenCamera] = useState(false)
   const [lantern, setLantern] = useState(false)
   const [permission, requestPermission] = useCameraPermissions()
+  const [consultarProduto, setConsultarProduto] = useState(null)
+  const [camType, setCamType] = useState('photo');
+  const [time, setTime] = useState(0)
+
+  const videoRef = useRef(null);
 
   useEffect(() => {
       if (permission && !permission.granted) {
@@ -81,7 +90,6 @@ export default function Ibanez({ navigation }) {
     } else if(buscarPor === 'numserie') {
       setPrinted(false)
       setOpenCameraReader(null);
-      setLoading(true);
       if(data === inCamera.ETIQUETA) {
         Alert.alert('Atenção!','A etiqueta bipada se refere à etiqueta do produto e não ao número de série.',[
           {
@@ -89,12 +97,19 @@ export default function Ibanez({ navigation }) {
             onPress: () => setOpenCameraReader(inCamera)
           }
         ])
+      } else if(data !== inCamera.NUMSERIE) {
+        Alert.alert('Atenção!','A etiqueta bipada não se refere ao número de série do produto selecionado.',[
+          {
+            title: 'ok',
+            onPress: () => setOpenCameraReader(inCamera)
+          }
+        ])
       } else {
-        axios.get(`/wIbanezEan?Produto=${selectedPendente.PRODUTO}&SN=${data}`)
+        axios.get(`/wIbanezEan?Produto=${inCamera.PRODUTO}&SN=${data}`)
         .then(({ data: retorno }) => {
           setLoading(false)
           setOpenCameraReader(null)
-          setSelectedPendente({...selectedPendente, NUMSERIE: data })
+          setSelectedPendente({...selectedPendente, ...inCamera, NUMSERIE: data })
         })
       }
       setLoading(false);
@@ -127,6 +142,7 @@ export default function Ibanez({ navigation }) {
     } else {
       setLoading(false);
     }
+    setLoading(false);
   };
 
   function handleMotivo(index) {
@@ -208,6 +224,11 @@ export default function Ibanez({ navigation }) {
     }
   }
 
+  function handleBuscarItem(item) {
+    setOpenCameraReader(item)
+    setBuscarPor('numserie')
+  }
+
   useEffect(() => {
     async function buscaPendentes() {
       await axios
@@ -222,6 +243,7 @@ export default function Ibanez({ navigation }) {
           if(error.message?.includes('401')) {
             refreshAuthentication();
           }
+          console.log(error.message)
           setLoading(false)
         }
       })
@@ -230,14 +252,10 @@ export default function Ibanez({ navigation }) {
   }, [selectedPendente, user.refresh_token])
 
   const renderItem = ({item}) => {
-
     return (
       <Item
         item={item}
-        onPress={() => {
-          setBuscarPor('etiqueta')
-          setOpenCameraReader(item)
-        }}
+        onPress={() => handleBuscarItem(item)}
       />
     );
   };
@@ -266,8 +284,55 @@ export default function Ibanez({ navigation }) {
   }
 
   function handlePreviewPhoto(foto) {
-    setPreviewPhoto(foto)
+    if(foto.name.substr(-3) === 'mp4') {
+      setCamType('video')
+      setPreviewVideo(foto)
+    } else {
+      setCamType('photo')
+      setPreviewPhoto(foto)
+    }
   }
+
+  const Item = ({item, onPress}) => (
+    <>
+    <TouchableOpacity onPress={onPress} style={[styles.item,{ backgroundColor: "#fff", borderRadius: 8, margin: 16, borderColor: colors["green-300"], borderWidth: 1 }]}>
+      <View style={{ padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <Image source={{ uri: item.PRODUTOOBJ.IMAGEM}} style={{ width: 50, height: 50 }} />
+        <View style={{ flex: 1, marginLeft: 8 }}>
+          <View style={{ height: 50, flexDirection: 'column', justifyContent: 'space-between' }}>
+            <Text style={[styles.title, {color: "#111", fontSize: 14 }]}>{item.PRODUTOOBJ.DESCRICAO}</Text>
+            <Text style={[styles.title, {color: "#111", fontSize: 14 }]}><Text style={{ fontWeight: 'bold' }}>Código ME:</Text> {item.PRODUTOOBJ.CODIGO}</Text>
+            <Text style={[styles.title, {color: "#111", fontSize: 14 }]}><Text style={{ fontWeight: 'bold' }}>Partnumber:</Text> {item.PRODUTOOBJ.PARTNUMBER}</Text>
+          </View>
+        </View>
+      </View>
+
+      <View style={{ padding: 8, backgroundColor: "#EFEFEF", flexDirection: 'row', justifyContent: 'justify-content', gap: 8, alignItems: 'center' }}>
+        <View style={{ flexDirection: 'row', marginLeft: 16, justifyContent: 'flex-start', gap: 8, alignItems: 'center', flex: 1 }}>
+          <Icon name="barcode-outline" color="#111" size={24} />
+          <Text style={{ color: "#111", fontSize: 14, textAlign: 'center' }}><Text style={{ fontSize: 14, fontWeight: 'bold' }}>{item.NUMSERIE}</Text></Text>
+        </View>
+        <Icon name="chevron-forward-outline" color="#111" size={24} />
+      </View>
+      <View style={{ paddingHorizontal: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
+        {item.PROXIMAREVISAO ? <View style={{ padding: 8, borderRadius: 8 }}>
+          <Text style={{ color: "#111", fontSize: 14 }}>Última Revisão: <Text style={{ color: colors["green-300"], fontSize: 14, fontWeight: 'bold' }}>{item.REVISAO}</Text></Text>
+        </View> : <View style={{ padding: 8, borderRadius: 8 }}>
+          <Text style={{ color: "#111", fontSize: 14 }}>Produto ainda não inspecionado.</Text>
+        </View>}
+        {item.PROXIMAREVISAO && <View style={{ padding: 8, borderRadius: 8 }}>
+          <Text style={{ color: "#111", fontSize: 14 }}>Validade. <Text style={{ color: colors["green-300"], fontSize: 14, fontWeight: 'bold' }}>{item.VIGENCIA}</Text></Text>
+        </View>}
+      </View>
+
+    </TouchableOpacity>
+    <TouchableOpacity onPress={() => setConsultarProduto(item.PRODUTO)} style={[styles.item,{ backgroundColor: colors["green-300"], borderRadius: 8, margin: 16, marginTop: 0, borderColor: '#222', borderWidth: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingVertical: 12 }]}>
+    <Icon name='search'color='#111' size={18} />
+      <Text style={{ color: '#222' }}>
+      Consultar Endereços</Text>
+    </TouchableOpacity>
+    </>
+  );
 
   const navigationView = () => (
     <View style={[styles.container, styles.navigationContainer]}>
@@ -345,14 +410,14 @@ export default function Ibanez({ navigation }) {
           <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', gap: 8, flex: 1 }}>
             {fotos.map((foto, index) => {
               return <TouchableOpacity onPress={() => handlePreviewPhoto(foto)} key={index} style={{ backgroundColor: "#000",width: 62, height: 82, borderWidth: 1 }}>
-                <Image source={{ uri: foto }} style={{ width: 60, height: 80}} />
+                <Image source={{ uri: foto.obj }} style={{ width: 60, height: 80}} />
               </TouchableOpacity>
             })}
             </View>
             <TouchableOpacity
             onPress={() => setOpenCamera(true)}
             style={{ padding: 16, backgroundColor: colors["gray-500"], marginTop: 16 }}>
-            <Text style={{ textAlign: 'center', color: "#fff", fontWeight: 'bold' }}>Adicionar Foto</Text>
+            <Text style={{ textAlign: 'center', color: "#fff", fontWeight: 'bold' }}>Adicionar Foto / Vídeo</Text>
           </TouchableOpacity>
         </View>}
 
@@ -380,9 +445,72 @@ export default function Ibanez({ navigation }) {
 
   const device = useCameraDevice('back')
 
+  async function recordVideo() {
+    function getTime(deadline) {
+      const seconds = Date.parse(deadline) - Date.now();
+      setTime(Math.floor((seconds / 1000) % 60) * -1);
+    }
+    if(!videoIsRecording) {
+      setVideoIsRecording(true)
+      const deadline = new Date()
+      const interval = setInterval(() => getTime(deadline), 1000)
+      await cameraRef.current.startRecording({
+        quality: 50,
+        videoBitRate: 'extra-low',
+        videoCodec: 'h265',
+        onRecordingFinished: async (video) => {
+          clearInterval(interval);
+          setTime(0)
+          setLoadingFoto(true)
+          const result = await fetch(`file://${video.path}`)
+          const data = await result.blob();
+  
+          var reader = new FileReader();
+          reader.readAsDataURL(data); 
+          reader.onloadend = function() {
+            var base64data = reader.result.substr(reader.result.indexOf(',')+1);
+            const revisao = selectedPendente.PROXIMAREVISAO || "01"
+            const name = selectedPendente.PRODUTO+"_"+selectedPendente.NUMSERIE+"_REV"+revisao+"_"+sequencial.toString().padStart(2,"0")+".mp4";
+            try {
+              axios
+                .post(`/wInspecaoPhoto`, {name, base64data })
+                .then(({ data }) => {
+                  if(data.Status === 200) {
+                    setFotos([...fotos, { name, obj: reader.result}])
+                    setSequencial(sequencial + 1)
+                    setLoadingFoto(false)
+                    setPreviewVideo({ name, obj: reader.result})
+                  } else {
+                    setLoadingFoto(false)
+                  }
+                }).catch((error) => {
+                  setLoadingFoto(false)
+                })
+            } catch(err) {
+              setLoadingFoto(false)
+            }
+          }
+        },
+        onRecordingError: (error) => {
+          clearInterval(interval);
+          setTime(0)
+          if(error.code === 'capture/recording-canceled') {
+            setVideoIsRecording(false)
+            Alert.alert('Atenção!','Gravação cancelada e vídeo descartado.');
+          }
+        }
+      })
+    } else {
+      await cameraRef.current.stopRecording()
+      setVideoIsRecording(false)
+    }
+    
+  }
+
   async function takePhoto() {
     setLoadingFoto(true)
-    const photo = await cameraRef.current.takePhoto({
+    const photo = await cameraRef.current.takeSnapshot({
+      quality: 50,
       qualityPrioritization: 'speed',
       flash: 'off',
     })
@@ -400,10 +528,10 @@ export default function Ibanez({ navigation }) {
           .post(`/wInspecaoPhoto`, {name, base64data })
           .then(({ data }) => {
             if(data.Status === 200) {
-              setFotos([...fotos, reader.result])
+              setFotos([...fotos, { name, obj: reader.result}])
               setSequencial(sequencial + 1)
               setLoadingFoto(false)
-              setPreviewPhoto(reader.result)
+              setPreviewPhoto({ obj: reader.result })
             } else {
               setLoadingFoto(false)
             }
@@ -467,7 +595,7 @@ export default function Ibanez({ navigation }) {
 
                                     <View style={{ position: 'absolute', bottom: 0, backgroundColor: "rgba(0,0,0,.3)", width: RFPercentage(45), flexDirection: 'row', justifyContent: 'center', gap: 8, alignItems: 'center' }}>
                                       <Icon name="barcode-outline" color="#FFF" size={28} />
-                                      <Text style={{ color: "#fff", fontSize: 14, textAlign: 'center' }}><Text style={{ fontSize: 18, fontWeight: 'bold' }}>{openCameraReader.ETIQUETA}</Text></Text>
+                                      <Text style={{ color: "#fff", fontSize: 14, textAlign: 'center' }}><Text style={{ fontSize: 18, fontWeight: 'bold' }}>{openCameraReader.ETIQUETA || openCameraReader.NUMSERIE}</Text></Text>
                                     </View>
                                 </View>
                                 <TouchableOpacity onPress={() => setLantern(!lantern)} style={{ width: '100%',paddingVertical: 16, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}><Icon name='flashlight' size={24} /></TouchableOpacity>
@@ -499,16 +627,46 @@ export default function Ibanez({ navigation }) {
                         <ScrollView>
                             <View style={{ width: '100%', paddingVertical: 12 }}>
                                 <View style={{ width: '100%', height: RFPercentage(90), overflow: 'hidden', zIndex: 10, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
-                                  <Camera device={device} isActive={true} photo={true} ref={cameraRef}
+                                  <Camera photoQualityBalance="speed" video={camType === 'video'} device={device} isActive={true} photo={camType === 'photo'} ref={cameraRef}
                                     style={{ width: RFPercentage(55), height: RFPercentage(100) }} />
-                                  {!loadingFoto ?
-                                    <TouchableOpacity onPress={() => takePhoto()} style={{ borderWidth: 1, borderColor: "#efefef", fontWeight: 'bold', backgroundColor: "#FFF", borderRadius: 50, width: 150, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 50, position: 'absolute', bottom: 50, left: 102 }}>
-                                    <Text>Tirar foto</Text>
-                                  </TouchableOpacity>
-                                  :
-                                  <View style={{ borderWidth: 1, borderColor: "#efefef", fontWeight: 'bold', backgroundColor: "#FFF", borderRadius: 50, width: 300, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 50, position: 'absolute', bottom: 50, left: 28 }}>
-                                    <Text>Por favor aguarde, enviando imagem...</Text>
-                                  </View>}
+                                    {!loadingFoto ?
+                                        <>
+                                        {time > 0 && <View style={{ position: 'absolute', backgroundColor: "transparent", padding: 8, borderRadius: 4, bottom: 87, left: 80 }}>
+                                          <Text style={{ color: "#FFF" }}>{time.toString().padStart(2,"0")}s</Text>
+                                        </View>}
+                                        <TouchableOpacity onPress={() => camType === 'photo' ? takePhoto() : recordVideo() } style={{ borderWidth: 3, borderColor: "#fff", fontWeight: 'bold', backgroundColor: videoIsRecording || loadingFoto ? "#F00" : "transparent", borderRadius: 50, width: 50, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 50, position: 'absolute', bottom: 80, left: 152 }}>
+                                        
+                                        </TouchableOpacity>
+                                        {videoIsRecording && <TouchableOpacity onPress={() => cameraRef.current.cancelRecording()} style={{ position: 'absolute', backgroundColor: "rgba(0,0,0,.2)", borderWidth: 1, borderColor: 'rgba(0,0,0,.4)', padding: 8, borderRadius: 4, bottom: 87, left: 220 }}>
+                                          <Text style={{ color: "#FFF" }}>Cancelar</Text>
+                                        </TouchableOpacity>}
+                                      </>
+                                    :
+                                    <View style={{ borderWidth: 1, borderColor: "#efefef", fontWeight: 'bold', backgroundColor: "#FFF", borderRadius: 50, width: 300, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 50, position: 'absolute', bottom: 50, left: 28 }}>
+                                      <Text>Por favor aguarde, enviando imagem...</Text>
+                                    </View>}
+                                    <View style={{ position: 'absolute', top: 20, width: '100%',  left: 0, flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center' }}>
+                                    <View>
+                                    <TouchableOpacity onPress={() => setCamType('photo')} style={{ borderWidth: 1, borderColor: "#efefef", fontWeight: 'bold', backgroundColor: camType === 'video' ? "transparent" : "#efefef", borderRadius: 50, width: 50, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 30}}>
+                                    <Icon
+                                      name="camera"
+                                      size={18}
+                                      color={camType === 'photo' ? colors['gray-500'] : colors['white']}
+                                    />
+                                    </TouchableOpacity>
+                                      <Text style={{ fontSize: 12, color: camType === 'photo' ? '#FFF' : 'transparent', width: '100%', textAlign: 'center' }}>Foto</Text>
+                                    </View>
+                                    <View>
+                                      <TouchableOpacity onPress={() => setCamType('video')} style={{ borderWidth: 1, borderColor: "#efefef", fontWeight: 'bold', backgroundColor: camType === 'photo' ? "transparent" : "#FFF", borderRadius: 50, width: 50, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 30 }}>
+                                        <Icon
+                                          name="videocam"
+                                          size={18}
+                                          color={camType === 'video' ? colors['gray-500'] : colors['white']}
+                                        />
+                                      </TouchableOpacity>
+                                      <Text style={{ fontSize: 12, color: camType === 'video' ? '#FFF' : 'transparent', width: '100%', textAlign: 'center' }}>Vídeo</Text>
+                                    </View>
+                                  </View>
                                 </View>
                             </View>
                         </ScrollView>
@@ -516,17 +674,18 @@ export default function Ibanez({ navigation }) {
                 </View>
             </Modal> : null }
 
-          {previewPhoto &&
+          {(previewPhoto || previewVideo) &&
             <Modal
             animationType="slide"
             transparent={true}
-            visible={previewPhoto ? true : false}
+            visible={previewPhoto || previewVideo ? true : false}
             onRequestClose={() => {
                 setPreviewPhoto(null);
+                setPreviewVideo(null);
                 return false
             }}>
                   <View style={{ height: RFPercentage(100), backgroundColor: "#efefef", marginTop: 10, flex: 1 }}>
-                    <TouchableOpacity onPress={() => setPreviewPhoto(null)} style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 24, marginLeft: 12}}>
+                    <TouchableOpacity onPress={() => {setPreviewPhoto(null);setPreviewVideo(null)}} style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 24, marginLeft: 12}}>
                         <Icon
                           name="chevron-back-outline"
                           size={30}
@@ -538,7 +697,8 @@ export default function Ibanez({ navigation }) {
                         <ScrollView>
                             <View style={{ width: '100%', paddingVertical: 12 }}>
                                 <View style={{ width: '100%', height: RFPercentage(90), overflow: 'hidden', zIndex: 10, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
-                                  <Image source={{ uri: previewPhoto }} style={{ width: 400, height: 600 }} />
+                                  {camType === 'photo' && <Image source={{ uri: previewPhoto.obj }} style={{ width: 400, height: 600 }} />}
+                                  {camType === 'video' && previewVideo && <Video controls={true} ref={videoRef} source={{ uri: `https://b2b.musical-express.com.br/assets/images/Inspecoes Ibanez/${previewVideo.name}` }} style={{ width: 350, height: 600 }} />}
                                 </View>
                             </View>
                         </ScrollView>
@@ -547,17 +707,36 @@ export default function Ibanez({ navigation }) {
             </Modal>}
 
 
-            <View style={{ flexDirection: 'column', flex: 1, justifyContent: 'flex-start', alignItems: 'center', marginTop: 32, gap: 16 }}>
+          { consultarProduto && 
+            <Modal
+            animationType="slide"
+            transparent={true}
+            visible={consultarProduto ? true : false}
+            onRequestClose={() => {
+                setConsultarProduto(null);
+                return false
+            }}>
+          <ConsultaProduto search={consultarProduto} setSearch={setConsultarProduto} />
+          </Modal>}
+
+
+            <View style={{ flexDirection: 'column', flex: 1, justifyContent: 'flex-start', alignItems: 'center', marginTop: 24, gap: 8 }}>
               { !loading && <TouchableOpacity onPress={handleEAN} style={{ backgroundColor: ambiente === 'producao' ? colors['green-300'] : colors['blue-300'], borderRadius: 16, paddingVertical: 16, paddingHorizontal: 32, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
                 <>
                   <Icon name='scan-outline' color="#FFF" size={28} />
                   <Text style={{ color: ambiente === 'producao' ? '#111' : '#fff', fontWeight: 'bold' }}>Inspecionar novo produto</Text>
                 </>
               </TouchableOpacity>}
-              {pendentes?.length > 0 && <FlatList data={pendentes}
+              {pendentes?.length > 0 && <>
+                <View style={{ borderTopWidth: 1, width: '100%', textAlign: 'center', paddingTop: 16, borderColor: '#111', borderStyle: 'solid', marginTop: 16, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8  }}>
+                  <Icon name='alert-circle-outline' size={20} />
+                  <Text style={{ fontWeight: 'bold', fontSize: 20 }}>Pendentes de Reinspeção</Text>
+                </View>
+                <FlatList data={pendentes}
                 renderItem={renderItem}
-                keyExtractor={item => item.ETIQUETA}
-                extraData={selectedPendente} style={{ flex: 1, width: '100%' }} />}
+                keyExtractor={item => item.NUMSERIE}
+                extraData={selectedPendente} style={{ flex: 1, width: '100%' }} />
+                </>}
               { loading && <View style={{ backgroundColor:"#FFF", borderRadius: 8, padding: 8, width: 200 }}>
                 <Text style={{ textAlign: 'center' }}>Buscando...</Text>
               </View>}
@@ -572,40 +751,6 @@ export default function Ibanez({ navigation }) {
     </SafeAreaView>
   )
 }
-
-const Item = ({item, onPress}) => (
-  <TouchableOpacity onPress={onPress} style={[styles.item,{ backgroundColor: "#fff", borderRadius: 8, margin: 16, borderColor: colors["green-300"], borderWidth: 1 }]}>
-    <View style={{ padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-      <Image source={{ uri: item.PRODUTOOBJ.IMAGEM}} style={{ width: 50, height: 50 }} />
-      <View style={{ flex: 1 }}>
-        <View style={{ height: 50, flexDirection: 'column', justifyContent: 'space-between' }}>
-          <Text style={[styles.title, {color: "#111", fontSize: 14 }]}>{item.PRODUTOOBJ.DESCRICAO}</Text>
-          <Text style={[styles.title, {color: "#111", fontSize: 14 }]}><Text style={{ fontWeight: 'bold' }}>Código ME:</Text> {item.PRODUTOOBJ.CODIGO}</Text>
-          <Text style={[styles.title, {color: "#111", fontSize: 14 }]}><Text style={{ fontWeight: 'bold' }}>Partnumber:</Text> {item.PRODUTOOBJ.PARTNUMBER}</Text>
-        </View>
-      </View>
-    </View>
-
-    <View style={{ padding: 8, backgroundColor: "#EFEFEF", flexDirection: 'row', justifyContent: 'justify-content', gap: 8, alignItems: 'center' }}>
-      <View style={{ flexDirection: 'row', marginLeft: 16, justifyContent: 'flex-start', gap: 8, alignItems: 'center', flex: 1 }}>
-        <Icon name="barcode-outline" color="#111" size={24} />
-        <Text style={{ color: "#111", fontSize: 14, textAlign: 'center' }}><Text style={{ fontSize: 16, fontWeight: 'bold' }}>{item.ETIQUETA}</Text></Text>
-      </View>
-      <Icon name="chevron-forward-outline" color="#111" size={24} />
-    </View>
-    <View style={{ paddingHorizontal: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
-      {item.PROXIMAREVISAO ? <View style={{ padding: 8, borderRadius: 8 }}>
-        <Text style={{ color: "#111", fontSize: 14 }}>Última Revisão: <Text style={{ color: colors["green-300"], fontSize: 18, fontWeight: 'bold' }}>{item.REVISAO}</Text></Text>
-      </View> : <View style={{ padding: 8, borderRadius: 8 }}>
-        <Text style={{ color: "#111", fontSize: 14 }}>Produto ainda não inspecionado.</Text>
-      </View>}
-      {item.PROXIMAREVISAO && <View style={{ padding: 8, borderRadius: 8 }}>
-        <Text style={{ color: "#111", fontSize: 14 }}>Validade. <Text style={{ color: colors["green-300"], fontSize: 18, fontWeight: 'bold' }}>{item.VIGENCIA}</Text></Text>
-      </View>}
-    </View>
-
-  </TouchableOpacity>
-);
 
 const styles = StyleSheet.create({
   container: {
