@@ -13,9 +13,6 @@ const ConferenceProvider = ({ children }) => {
 
   function handleModifySelectedInvoices(invoice) {
     const isInArray = selectedInvoices.findIndex(selected => selected.notafiscal.trim() === invoice.notafiscal.trim() && selected.fornecedor.trim() === invoice.fornecedor.trim())
-    console.log(isInArray)
-    console.log(selectedInvoices)
-    console.log(invoiceItems)
     if(isInArray === -1) { //Não encontrado
       if(selectedInvoices.length > 0 && (selectedInvoices[0].fornecedor.trim() !== invoice.fornecedor.trim() || selectedInvoices[0].loja.trim() !== invoice.loja.trim())) {
         Alert.alert("Atenção!","Fornecedor diferente. Somente é possível agrupar notas de um mesmo fornecedor.");

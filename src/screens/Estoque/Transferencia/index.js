@@ -25,6 +25,7 @@ export default function Transferencia({ navigation }) {
   const [openOriginScanner, setOpenOriginScanner] = useState(false)
   const [openProductScanner, setOpenProductScanner] = useState(false)
   const [openDestinationScanner, setOpenDestinationScanner] = useState(false)
+  const [openSNScanner, setOpenSNScanner] = useState(false)
   const [loading, setLoading] = useState(false)
 
   const {
@@ -73,16 +74,17 @@ export default function Transferencia({ navigation }) {
       .then((response) => {
         const data = response.data
 
-        const product = {
+        const retProduct = {
           ARMAZEM: data.ARMAZEM,
           CODIGO: data.CODIGO,
           ENDERECO: data.ENDERECO,
           PRODUTOS: data.PRODUTOS[0],
           QTDE: data.QTDE,
+          TEMSN: data.PRODUTOS[0].TEMSN,
+          SN: ""
         }
-        console.log(product)
 
-        setProduct(product)
+        setProduct(retProduct)
         setOpenProductScanner(false)
         setLoading(false)
       })
@@ -122,22 +124,57 @@ export default function Transferencia({ navigation }) {
       })
   }
 
+  const onSNCodeScanned = (code) => {
+    setLoading(false)
+    setOpenSNScanner(false)
+    axios.get(`/wIbanezEan?Produto=${product.PRODUTOS.CODIGO}&SN=${code}`)
+          .then(({ data: retorno }) => {
+            if(retorno && retorno.Message) {
+              setProduct({...product, SN: code})
+            } else {
+              Alert.alert("Atenção!","Número de série não localizado para este produto.")
+              setProduct({...product, SN: ""})
+            }
+            setLoading(false)
+          })
+      .catch((error) => {
+        if (error) {
+          if(error.message.includes('401')) {
+            refreshAuthentication();
+          }
+          Alert.alert('Atenção!','Produto não encontrado')
+          setLoading(false)
+        }
+      })
+  }
+
   const handleTransferenceConfirmation = () => {
     setLoading(true)
+    if(product.TEMSN === 'S' && !product.SN) {
+      Alert.alert("Atenção!","Bipe a etiqueta de número de série do produto para rastreamento.", [
+        {
+          text: 'Ok',
+          onPress: () => {
+            setLoading(false)
+          }
+        }
+      ])
+      return
+    }
+    
     const body = {
       produtos: product.PRODUTOS.CODIGO,
       armazem_origem: product.ARMAZEM,
       endereco_origem: product.ENDERECO,
       armazem_destino: product.ARMAZEMDESTINO,
       endereco_destino: product.ENDERECODESTINO,
+      numero_de_serie: product.SN,
       quantidade: product.QTDE,
       etiqueta: product.CODIGO
     }
-    console.log(body)
     axios
       .post(`/wTransferir`, body)
       .then((response) => {
-        console.log(response.data)
         setLoading(false)
         Alert.alert('Atenção!',response.data.Message, [
           {
@@ -167,10 +204,14 @@ export default function Transferencia({ navigation }) {
         {openDestinationScanner && (
           <Scanner loading={loading} setLoading={setLoading} handleCodeScanned={onDestinationCodeScanned} />
         )}
+        {openSNScanner && (
+          <Scanner loading={loading} setLoading={setLoading} handleCodeScanned={onSNCodeScanned} />
+        )}
         {!(
           openProductScanner ||
           openOriginScanner ||
-          openDestinationScanner
+          openDestinationScanner ||
+          openSNScanner
         ) && (
           <View style={{ flex: 1, flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
 
@@ -237,6 +278,24 @@ export default function Transferencia({ navigation }) {
               /> }
               </View>
             </TouchableOpacity>
+
+            {product.TEMSN === 'S' &&
+            <TouchableOpacity onPress={() => setOpenSNScanner(true)} style={[styles.item,{ width: '100%', backgroundColor: "#fff", borderRadius: 8, borderColor: colors["green-300"], borderWidth: 1 }]}>
+              <View style={{ padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text>Número de Série: </Text>
+                {product.SN ? <TextInput
+                  editable={false}
+                  keyboardType='default'
+                  value={product.SN}
+                  style={{padding: 10, flex: 1, textAlign: 'right', fontSize: 18, fontWeight: 'bold', color: colors['green-300']}}
+                />
+                : <Icon
+                name="barcode-outline"
+                size={30}
+                color={colors['gray-500']}
+              />}
+              </View>
+            </TouchableOpacity>}
 
             <TouchableOpacity onPress={() => setOpenDestinationScanner(true)} style={[styles.item,{ width: '100%', backgroundColor: "#fff", borderRadius: 8, borderColor: product.ENDERECODESTINO ? colors["green-300"] : colors["red-300"], borderWidth: 1 }]}>
               <View style={{ padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>

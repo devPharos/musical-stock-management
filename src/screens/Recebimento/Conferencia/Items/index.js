@@ -112,8 +112,6 @@ export function Items({ navigation }) {
         imprimeetiquetas: true,
       }
 
-      // console.log(body)
-
       axios
         .post(`/wConfereNF`, body)
         .then((response) => {
@@ -144,10 +142,8 @@ export function Items({ navigation }) {
   }
 
   function handleOpenQuantityInform() {
-    // console.log(openQuantityInform)
     const notFinished = openQuantityInform.filter((inform) => parseInt(inform.qtdScan) === 0 || parseInt(inform.qtdEmb) === 0 || parseInt(inform.qtdEmb) > parseInt(inform.qtdScan))
     if(notFinished.length > 0) {
-      // console.log(notFinished)
       Alert.alert('Atenção!','Preencha as quantidades conferidas e por embalagem.\n\nVerifique se a quantidade por embalagem está maior que a quantidade lida.')
     } else {
       setOpenQuantityInform(null)

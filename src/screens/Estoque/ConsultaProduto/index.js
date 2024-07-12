@@ -27,13 +27,10 @@ import {
   
     function getProductData(find) {
       setLoading(true)
-      // console.log(find)
       axios
         .get(`/wBuscaProd?Produto=${find}`)
         .then(({ data }) => {
           setLoading(false)
-  
-          // console.log({ data })
   
           if(data.PRODUTOS.length > 0) {
             setProduct(data)
@@ -43,7 +40,6 @@ import {
             setProduct(null)
           }
         }).catch(err => {
-          // console.log({ err })
           setLoading(false)
         })
     }
@@ -93,7 +89,6 @@ import {
             product.PRODUTOS[0].SALDOS.map((saldo, index) => {
               return (
               <View key={index} style={{ marginVertical: 12, borderStyle: 'dashed', borderTopWidth: 1, borderColor: "#ccc", paddingVertical: 12 }}>
-                {console.log(saldo)}
                 <Text style={{ textAlign: 'center', color: "#111", fontSize: 14 }}>Armazém: <Text style={{ fontWeight: 'bold' }}>{saldo.ARMAZEM} - {saldo.ARMAZEMNOME}</Text></Text>
                 <View>
                   <View style={{ padding: 4,flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',backgroundColor: "#EFEFEF" }}>
