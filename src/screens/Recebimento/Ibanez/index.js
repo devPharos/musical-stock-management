@@ -69,7 +69,7 @@ export default function Ibanez({ navigation }) {
     setSelectedPendente({ BLOQVENDA: 'N', CONFORMIDADE: 'S', MOTIVO: [], ESCALA: 1 })
     setLoading(true);
 
-    if (buscarPor === 'etiqueta' && data === inCamera.ETIQUETA) {
+    if (buscarPor === 'etiqueta' && data.toUpperCase() === inCamera.ETIQUETA.toUpperCase()) {
       // Trecho de consulta
       setSelectedPendente({ ...selectedPendente, ...inCamera })
       setTimeout(() => {
@@ -90,41 +90,42 @@ export default function Ibanez({ navigation }) {
     } else if (buscarPor === 'numserie') {
       setPrinted(false)
       setOpenCameraReader(null);
-      if (data === inCamera.ETIQUETA) {
+      if (data.toUpperCase() === inCamera.ETIQUETA.toUpperCase()) {
         Alert.alert('Atenção!', 'A etiqueta bipada se refere à etiqueta do produto e não ao número de série.', [
           {
             title: 'ok',
             onPress: () => setOpenCameraReader(inCamera)
           }
         ])
-      } else if (data !== inCamera.NUMSERIE) {
-        Alert.alert('Atenção!', 'A etiqueta bipada não se refere ao número de série do produto selecionado.', [
-          {
-            title: 'ok',
-            onPress: () => setOpenCameraReader(inCamera)
-          }
-        ])
+      // } else if (data !== inCamera.NUMSERIE) {
+      //   Alert.alert('Atenção!', 'A etiqueta bipada não se refere ao número de série do produto selecionado.', [
+      //     {
+      //       title: 'ok',
+      //       onPress: () => setOpenCameraReader(inCamera)
+      //     }
+      //   ])
       } else {
-        axios.get(`/wIbanezEan?Produto=${inCamera.PRODUTO}&SN=${data}`)
+        axios.get(`/wIbanezEan?Produto=${inCamera.PRODUTO}&SN=${data.toUpperCase()}`)
           .then(({ data: retorno }) => {
             setLoading(false)
             setOpenCameraReader(null)
-            setSelectedPendente({ ...selectedPendente, ...inCamera, NUMSERIE: data })
+            setSelectedPendente({ ...selectedPendente, ...inCamera, NUMSERIE: data.toUpperCase() })
           })
       }
       setLoading(false);
     } else if (buscarPor === 'ean') {
-      axios.get(`/wIbanezEan?EAN=${data}`)
+      axios.get(`/wIbanezEan?EAN=${data.toUpperCase()}`)
         .then(({ data }) => {
-          setLoading(false)
           setOpenCameraReader(null)
           setSelectedPendente({ ...selectedPendente, ...data })
-          setLoading(true);
           setBuscarPor('numserie')
           Alert.alert('Atenção!', 'Este produto ainda não possui número de série.\nPor favor, bipe a etiqueta do número de série do produto.', [
             {
               title: 'ok',
-              onPress: () => setOpenCameraReader({ ETIQUETA: 'S/N do produto' })
+              onPress: () => {
+                setOpenCameraReader({ ETIQUETA: 'S/N do produto' });
+                setLoading(false)
+              }
             }
           ])
         })
@@ -142,7 +143,7 @@ export default function Ibanez({ navigation }) {
     } else {
       setLoading(false);
     }
-    setLoading(false);
+    // setLoading(false);
   };
 
   function handleMotivo(index) {
@@ -386,7 +387,7 @@ export default function Ibanez({ navigation }) {
               <Text style={{ textAlign: 'center', fontWeight: 'bold', color: selectedPendente.CONFORMIDADE === 'N' ? "#FFF" : "#111" }}>Apresentou Problemas</Text>
             </Pressable>
 
-            <View style={{ flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', paddingHorizontal: 16, maxWidth: 280 }}>
+            <View style={{ flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', paddingHorizontal: 16, maxWidth: '100%' }}>
 
             
               {selectedPendente.CONFORMIDADE === 'N' && 
