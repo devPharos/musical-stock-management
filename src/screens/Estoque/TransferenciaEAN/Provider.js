@@ -4,7 +4,6 @@ import { TouchableOpacity } from 'react-native'
 import Icon from 'react-native-vector-icons/Ionicons'
 import { TransferenciaProvider } from '../../../hooks/transferencia'
 import Transferencia from '.'
-import ConfirmacaoTransf from './Confirmacao'
 import { useUser } from '../../../hooks/user'
 const Stack = createNativeStackNavigator()
 
@@ -24,12 +23,13 @@ export default function TransferenciaRProvider({ navigation }) {
           name="TransferenciaRaiz"
           component={Transferencia}
           options={{
-            title: 'Transferência',
+            title: 'Transferência EAN',
             headerLeft: () => (
               <TouchableOpacity onPress={() => navigation.goBack()}>
                 <Icon
-                  name="chevron-back-sharp"
-                  size={30}
+                  name="arrow-back"
+                  size={22}
+                  style={{ marginRight: 34 }}
                   color={colors['gray-500']}
                 />
               </TouchableOpacity>
@@ -37,22 +37,6 @@ export default function TransferenciaRProvider({ navigation }) {
           }}
         />
 
-        <Stack.Screen
-          name="ConfirmacaoTransf"
-          component={ConfirmacaoTransf}
-          options={{
-            title: 'Confirmação',
-            headerLeft: () => (
-              <TouchableOpacity onPress={() => navigation.goBack()}>
-                <Icon
-                  name="chevron-back-sharp"
-                  size={30}
-                  color={colors['gray-500']}
-                />
-              </TouchableOpacity>
-            ),
-          }}
-        />
       </Stack.Navigator>
     </TransferenciaProvider>
   )

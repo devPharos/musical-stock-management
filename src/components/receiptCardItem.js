@@ -1,10 +1,10 @@
 import { View, StyleSheet, Text } from 'react-native'
 import { colors } from '../styles/colors'
 import Icon from 'react-native-vector-icons/Ionicons'
-import { useConference } from '../hooks/conference'
+import { useRecebimento } from '../hooks/recebimento'
 
 export function ReceiptCardItem({ invoice }) {
-  const { selectedInvoices } = useConference()
+  const { selectedInvoices } = useRecebimento()
   return (
     <View style={styles.container}>
       <Icon

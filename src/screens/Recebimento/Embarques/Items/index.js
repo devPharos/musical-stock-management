@@ -18,16 +18,15 @@ import { useEffect, useState } from 'react'
 import PrinterButton from '../../../../components/PrinterButton'
 import { useUser } from '../../../../hooks/user'
 import axios from 'axios'
-import { useConference } from '../../../../hooks/conference'
+import { useRecebimento } from '../../../../hooks/recebimento'
 import { RFPercentage } from 'react-native-responsive-fontsize'
-import ReceiptModal from '../../../../components/receiptModal'
 import { CameraView, useCameraPermissions } from 'expo-camera'
 
 export function Items({ navigation }) {
   const [openCameraReader, setOpenCameraReader] = useState(false);
   const [loading, setLoading] = useState(false)
-  const { selectedInvoices, invoiceItems, handleModifySelectedInvoices } = useConference()
-  const { user, selectedPrinter, baseURL } = useUser()
+  const { selectedInvoices, invoiceItems, handleModifySelectedInvoices } = useRecebimento()
+  const { selectedPrinter } = useUser()
   const [allItemsWereConferred, setAllItemsWereConferred] = useState(false)
   const [printerNotSelected, setPrinterNotSelected] = useState(false)
   const [openQuantityInform, setOpenQuantityInform] = useState(null)
@@ -134,7 +133,7 @@ export function Items({ navigation }) {
         {allItemsWereConferred ?
           <TouchableOpacity style={styles.button} onPress={() => handleButtonAction()}>
             <Text style={styles.buttonLabel}>
-              Finalizar conferência
+              Finalizar Recebimento
             </Text>
             <Icon
               name="barcode-outline"
@@ -145,7 +144,7 @@ export function Items({ navigation }) {
         :
           <TouchableOpacity style={styles.button} onPress={() => handleOpenCamera()}>
             <Text style={styles.buttonLabel}>
-              Continuar conferência
+              Continuar Recebimento
             </Text>
             <Icon
               name="barcode-outline"
@@ -189,8 +188,9 @@ export function Items({ navigation }) {
                 <View style={{ height: RFPercentage(100), backgroundColor: "#efefef", marginTop: 10, flex: 1 }}>
                   <TouchableOpacity onPress={() => setOpenCameraReader(false)} style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 24, marginLeft: 12}}>
                       <Icon
-                        name="chevron-back-outline"
-                        size={30}
+                        name="arrow-back"
+                        size={22}
+                        style={{ marginRight: 34 }}
                         color={colors['gray-500']}
                       />
                       <Text style={{ fontWeight: 'bold', fontSize: 18 }}>Leitura da Etiqueta</Text>

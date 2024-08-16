@@ -1,5 +1,5 @@
 import CustomButton from '../../components/button'
-import { ImageBackground, StyleSheet } from 'react-native'
+import { ImageBackground, ScrollView, StyleSheet } from 'react-native'
 import { useUser } from '../../hooks/user';
 
 export default function Consultas({ navigation, route }) {
@@ -11,7 +11,7 @@ export default function Consultas({ navigation, route }) {
       source={require('../../assets/bg.png')}
     >
     { bottomTab === 'Recebimento' &&
-    <>
+    <ScrollView style={{ height: '100%' }}>
       {user.menus[mainMenu].SUBMENU.findIndex(menu => menu.CODIGO === '111') > -1 &&
       <CustomButton
         label="Embarques Futuros"
@@ -20,11 +20,11 @@ export default function Consultas({ navigation, route }) {
         navigation={navigation}
         type="secondary"
       />}
-    </>}
+    </ScrollView>}
 
     
     { bottomTab === 'Estoque' &&
-    <>
+    <ScrollView style={{ height: '100%' }}>
       {user.menus[mainMenu].SUBMENU.findIndex(menu => menu.CODIGO === '211') > -1 &&
       <CustomButton
         label="Buscar por Produto"
@@ -41,7 +41,7 @@ export default function Consultas({ navigation, route }) {
         navigation={navigation}
         type="secondary"
       />}
-    </>}
+    </ScrollView>}
     </ImageBackground>
   )
 }

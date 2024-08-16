@@ -1,12 +1,12 @@
 import { View, StyleSheet, ActivityIndicator, TouchableOpacity, Alert } from 'react-native'
 import { colors } from '../styles/colors'
 import { ReceiptCardItem } from './receiptCardItem'
-import { useConference } from '../hooks/conference'
+import { useRecebimento } from '../hooks/recebimento'
 import { useEffect } from 'react'
 
 export function ReceiptCard({ loading, invoices, setInvoices }) {
 
-  const { handleModifySelectedInvoices } = useConference()
+  const { handleModifySelectedInvoices } = useRecebimento()
 
   return (
     <View style={styles.container}>

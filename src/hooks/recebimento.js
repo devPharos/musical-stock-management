@@ -1,13 +1,13 @@
 import { createContext, useContext, useState } from 'react'
 import { Alert } from 'react-native'
 
-export const ConferenceContext = createContext({
+export const RecebimentoContext = createContext({
   selectedInvoices: [],
   setReceiptGroup: () => {},
   selectGroup: () => null,
 })
 
-const ConferenceProvider = ({ children }) => {
+const RecebimentoProvider = ({ children }) => {
   const [selectedInvoices, setSelectedInvoices] = useState([])
   const [invoiceItems, setInvoiceItems] = useState([])
 
@@ -41,18 +41,18 @@ const ConferenceProvider = ({ children }) => {
   }
 
   return (
-    <ConferenceContext.Provider
+    <RecebimentoContext.Provider
       value={{ selectedInvoices, setSelectedInvoices, handleModifySelectedInvoices, invoiceItems, setInvoiceItems, handleCheckItem }}
     >
       {children}
-    </ConferenceContext.Provider>
+    </RecebimentoContext.Provider>
   )
 }
 
-const useConference = () => {
-  const context = useContext(ConferenceContext)
+const useRecebimento = () => {
+  const context = useContext(RecebimentoContext)
 
   return context
 }
 
-export { ConferenceProvider, useConference }
+export { RecebimentoProvider, useRecebimento }

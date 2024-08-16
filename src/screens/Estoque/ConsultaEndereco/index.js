@@ -7,31 +7,27 @@ import {
     View,
     TextInput,
     DrawerLayoutAndroid,
-    ScrollView,
     Image,
-    TouchableOpacity,
     ActivityIndicator,
+    FlatList,
   } from 'react-native'
   import Icon from 'react-native-vector-icons/Ionicons'
   import { colors } from '../../../styles/colors'
   import { useRef, useState } from 'react'
   import Scanner from '../../../components/scanner'
   import axios from 'axios'
-  import { useUser } from '../../../hooks/user'
   export default function ConsultaEndereco() {
-  
-    const { user, baseURL } = useUser()
     const [ endereco, setEndereco ] = useState(null)
     const [openProductScanner, setOpenProductScanner] = useState(false)
     const [loading, setLoading] = useState(false)
-    const [find, setFind] = useState(null)
     const drawer = useRef(null);
   
-    function getProductData() {
+    function getProductData(find) {
       setLoading(true)
       axios
         .get(`/wBuscaEnd?Armazem=${find.substr(0,2)}&Endereco=${find.substr(2)}`)
         .then(({ data }) => {
+          console.log(data.PRODUTOS)
           setLoading(false)
   
           if(data.PRODUTOS.length > 0) {
@@ -51,45 +47,36 @@ import {
     }
   
     const navigationView = () => (
-      <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'center', padding: 16 }}>
+      <View style={{ width: '100%', flex: 1, flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'center', padding: 16 }}>
         {endereco &&
-        <>
-          <ScrollView style={{ width: '100%' }}>
-            
-            <View style={{ flex: 1, position: 'relative' }}>
-              <Image source={{ uri: endereco.PRODUTOS[0].IMAGEM}} style={{ width: 284, height: 284 }} />
-              <Pressable style={{ position: 'absolute', top: 25, left: 10, padding: 4, flexDirection: 'row', alignItems: 'center', backgroundColor: "#efefef", borderRadius: 8 }} onPress={() => drawer.current.closeDrawer()}>
-                <Icon name="chevron-back-outline" size={18} color="#868686" /><Text style={{ fontSize: 12, color: "#868686" }}>Voltar</Text>
-              </Pressable>
-              <View style={{ position: 'absolute', bottom: 25, left: 10, backgroundColor: "#FFF", padding: 4, gap: 4, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#efefef', borderRadius: 8 }}>
-                <Icon name="information-circle-outline" color="#111" size={18} />
-                <Text style={{ textAlign: 'center', color: "#111", fontSize: 12 }}>{endereco.PRODUTOS[0].PARTNUMBER}</Text>
-              </View>
+        <FlatList data={endereco.PRODUTOS} style={{ width: '100%' }} renderItem={({ item,index }) => (
+          <>
+          <View key={index} style={{ width: '100%', flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }}>
+            <Image source={{ uri: item.IMAGEM}} style={{ width: 60, height: 60 }} />
+            <View style={{ paddingVertical: 8 }}>
+              <Text style={{ color: "#111", fontSize: 12 }}>{item.PARTNUMBER}</Text>
+              <Text style={{ color: "#111", fontWeight: 'bold' }}>{item.DESCRICAO}</Text>
+              <Text style={{ color: "#111" }}>Código: <Text style={{ fontWeight: 'bold' }}>{item.PRODUTO}</Text></Text>
+              <Text style={{ color: "#111" }}>NCM: <Text style={{ fontWeight: 'bold' }}>{item.NCM}</Text></Text>
             </View>
-  
-            <View style={{ paddingVertical: 8, borderTopWidth: 1 }}>
-              <Text style={{ textAlign: 'center', color: "#111", fontWeight: 'bold' }}>{endereco.PRODUTOS[0].DESCRICAO}</Text>
+
             </View>
-  
-            <View style={{ paddingVertical: 8, borderTopWidth: 1}}>
-              <Text style={{ textAlign: 'center', color: "#111" }}>Código: <Text style={{ fontWeight: 'bold' }}>{endereco.PRODUTOS[0].PRODUTO}</Text></Text>
-              <Text style={{ textAlign: 'center', color: "#111" }}>NCM: <Text style={{ fontWeight: 'bold' }}>{endereco.PRODUTOS[0].NCM}</Text></Text>
-            </View>
-            { endereco.PRODUTOS[0] && 
-            <View style={{ marginVertical: 12, borderStyle: 'dashed', borderTopWidth: 1, borderColor: "#ccc", paddingVertical: 12 }}>
-                <Text style={{ textAlign: 'center', color: "#111", fontSize: 18 }}>Armazém: <Text style={{ fontWeight: 'bold' }}>{endereco.PRODUTOS[0].ARMAZEM}</Text></Text>
+            <View style={{ borderBottomWidth: 1, borderColor: '#ccc', width: '100%' }}>
+            { item && 
+            <View style={{ borderStyle: 'dashed', borderTopWidth: 1, borderColor: "#efefef", paddingVertical: 4 }}>
                 <View>
                   <View style={{ padding: 4,flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',backgroundColor: "#EFEFEF" }}>
-                    <Text>Saldo </Text><Text>{endereco.PRODUTOS[0].QUANTIDADE}</Text>
+                    <Text>Saldo </Text><Text>{item.QUANTIDADE}</Text>
                   </View>
                   <View style={{ padding: 4,flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Text>Empenhado </Text><Text>{endereco.PRODUTOS[0].EMPENHO}</Text>
+                    <Text>Empenhado </Text><Text>{item.EMPENHO}</Text>
                   </View>
                 </View>
               </View>}
-  
-          </ScrollView>
-        </>}
+              </View>
+              </>
+              )}
+         />}
       </View>
     );
   
@@ -148,7 +135,6 @@ import {
                         <TextInput
                           placeholder={'Armazém + Endereço, ex: 0103E0103001'}
                           style={styles.input}
-                          onChangeText={setFind}
                           onEndEditing={(e) => getProductData(e.nativeEvent.text.toUpperCase())}
                         />
                       </View>

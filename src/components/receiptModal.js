@@ -11,7 +11,7 @@ import { Controller, SubmitHandler, useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as Yup from 'yup'
 import Icon from 'react-native-vector-icons/Ionicons'
-import { useConference } from '../hooks/conference'
+import { useRecebimento } from '../hooks/conference'
 
 export default function ReceiptModal({
   setItemQuantity,
@@ -25,7 +25,7 @@ export default function ReceiptModal({
     quantity: Yup.number(0).positive('Quantidade deve ser maior que zero.').integer().required('Campo obrigatório.').max(item.quantidade2um, 'A quantidade não pode ser maior que a da nota: '+item.quantidade2um)
   })
 
-  const { receiptGroup, setReceiptGroup } = useConference()
+  const { receiptGroup, setReceiptGroup } = useRecebimento()
 
   const methods = useForm({
     resolver: yupResolver(itemQuantityFormSchema),

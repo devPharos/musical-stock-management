@@ -42,7 +42,7 @@ export default function CustomButton({
 const styles = StyleSheet.create({
   containerSecondary: {
     backgroundColor: colors.white,
-    paddingVertical: 24,
+    paddingVertical: 18,
     paddingHorizontal: 12,
     borderRadius: 0,
     marginVertical: 8,
@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: -2, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 3,
-    elevation: 20,
+    elevation: 2,
   },
   containerPrimary: {
     backgroundColor: colors['green-300'],

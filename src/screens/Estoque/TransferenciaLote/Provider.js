@@ -1,18 +1,18 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import Ibanez from '.'
-import { IbanezProvider } from '../../../hooks/ibanez'
 import { colors } from '../../../styles/colors'
 import { TouchableOpacity } from 'react-native'
 import Icon from 'react-native-vector-icons/Ionicons'
+import { TransferenciaProvider } from '../../../hooks/transferencia'
+import Transferencia from '.'
 import { useUser } from '../../../hooks/user'
 const Stack = createNativeStackNavigator()
 
-export default function IbanezRootProvider({ navigation }) {
+export default function TransferenciaLoteRProvider({ navigation }) {
   const { ambiente } = useUser();
   return (
-    <IbanezProvider>
+    <TransferenciaProvider>
       <Stack.Navigator
-        initialRouteName="Ibanez"
+        initialRouteName="TransferenciaLote"
         screenOptions={{
           headerBackTitleVisible: false,
           headerTintColor: colors['gray-500'],
@@ -20,10 +20,10 @@ export default function IbanezRootProvider({ navigation }) {
         }}
       >
         <Stack.Screen
-          name="IbanezRaiz"
-          component={Ibanez}
+          name="TransferenciaLoteRaiz"
+          component={Transferencia}
           options={{
-            title: 'Inspeção Ibanez',
+            title: 'Transferência de Lotes',
             headerLeft: () => (
               <TouchableOpacity onPress={() => navigation.goBack()}>
                 <Icon
@@ -37,6 +37,6 @@ export default function IbanezRootProvider({ navigation }) {
           }}
         />
       </Stack.Navigator>
-    </IbanezProvider>
+    </TransferenciaProvider>
   )
 }

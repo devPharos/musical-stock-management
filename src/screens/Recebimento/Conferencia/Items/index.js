@@ -20,20 +20,28 @@ import { useEffect, useState } from 'react'
 import PrinterButton from '../../../../components/PrinterButton'
 import { useUser } from '../../../../hooks/user'
 import axios from 'axios'
-import { useConference } from '../../../../hooks/conference'
+import { useRecebimento } from '../../../../hooks/recebimento'
 import { CameraView, useCameraPermissions } from 'expo-camera'
 import { RFPercentage } from 'react-native-responsive-fontsize'
 
 export function Items({ navigation }) {
   const [openCameraReader, setOpenCameraReader] = useState(false);
   const [loading, setLoading] = useState(false)
-  const { selectedInvoices, invoiceItems, setSelectedInvoices, setInvoiceItems, handleModifySelectedInvoices } = useConference()
-  const { user, selectedPrinter, setSelectedPrinter } = useUser()
+  const { selectedInvoices, invoiceItems, setSelectedInvoices, setInvoiceItems, handleModifySelectedInvoices } = useRecebimento()
+  const { selectedPrinter } = useUser()
   const [allItemsWereConferred, setAllItemsWereConferred] = useState(false)
   const [printerNotSelected, setPrinterNotSelected] = useState(false)
-  const [openQuantityInform, setOpenQuantityInform] = useState(null)
   const [checkdItems, setCheckedItems] = useState(0)
   const [permission, requestPermission] = useCameraPermissions()
+  const openQuantityInformDefault = {
+    codigo: '',
+    qtdScan: 0,
+    qtdEmb: 0,
+    quantidade: 0,
+    notafiscal: 0,
+    serie: 0,
+  }
+  const [openQuantityInform, setOpenQuantityInform] = useState(openQuantityInformDefault)
 
   useEffect(() => {
       if (permission && !permission.granted) {
@@ -56,6 +64,7 @@ export function Items({ navigation }) {
       })
       return invoice
     })
+    // setSelectedProduct(filteredItems)
     setOpenQuantityInform(filteredItems)
     setLoading(true);
 
@@ -105,10 +114,11 @@ export function Items({ navigation }) {
       const itens = []
 
       invoiceItems.map(inv => {
-        itens.push(...inv)
+          itens.push(...inv)
       })
       const body = {
         itens,
+        impressora: selectedPrinter.CODIGO,
         imprimeetiquetas: true,
       }
 
@@ -117,6 +127,9 @@ export function Items({ navigation }) {
         .then((response) => {
           if (response.status === 200) {
             selectedInvoices.forEach(inv => {
+              inv.itens.forEach(item => {
+                item.qtdScan = 0
+              })
               handleModifySelectedInvoices(inv)
             })
             setSelectedInvoices([])
@@ -142,11 +155,23 @@ export function Items({ navigation }) {
   }
 
   function handleOpenQuantityInform() {
+
     const notFinished = openQuantityInform.filter((inform) => parseInt(inform.qtdScan) === 0 || parseInt(inform.qtdEmb) === 0 || parseInt(inform.qtdEmb) > parseInt(inform.qtdScan))
     if(notFinished.length > 0) {
-      Alert.alert('Atenção!','Preencha as quantidades conferidas e por embalagem.\n\nVerifique se a quantidade por embalagem está maior que a quantidade lida.')
+      Alert.alert('Atenção!','Preencha as quantidades recebidas e por embalagem.\n\nVerifique se a quantidade por embalagem está maior que a quantidade lida.')
     } else {
-      setOpenQuantityInform(null)
+      invoiceItems.map((inv) => {
+        return inv.map((item) => {
+          if(item.qtdScan > 0 && !item.order) {
+            // item.order = 0;
+            item.order = inv.filter(inv => inv.order).length + 1
+          }
+          return item
+        })
+      })
+      // console.log(invoiceItems[0].filter(item => item.qtdScan > 0))
+      setOpenQuantityInform(openQuantityInformDefault)
+      
     }
   }
 
@@ -161,7 +186,7 @@ export function Items({ navigation }) {
         : allItemsWereConferred ?
           <TouchableOpacity style={styles.button} onPress={() => handleButtonAction()}>
             <Text style={styles.buttonLabel}>
-              Finalizar conferência
+              Finalizar Recebimento
             </Text>
             <Icon
               name="barcode-outline"
@@ -174,7 +199,7 @@ export function Items({ navigation }) {
         <>
         <TouchableOpacity style={styles.button} onPress={() => handleButtonAction()}>
             <Text style={styles.buttonLabel}>
-              Finalizar conferência
+              Finalizar Recebimento
             </Text>
             <Icon
               name="barcode-outline"
@@ -184,7 +209,7 @@ export function Items({ navigation }) {
           </TouchableOpacity>
           <TouchableOpacity style={styles.button} onPress={() => handleOpenCamera()}>
             <Text style={styles.buttonLabel}>
-              Continuar conferência
+              Continuar Recebimento
             </Text>
             <Icon
               name="barcode-outline"
@@ -196,7 +221,7 @@ export function Items({ navigation }) {
           :
           <TouchableOpacity style={styles.button} onPress={() => handleOpenCamera()}>
             <Text style={styles.buttonLabel}>
-              Continuar conferência
+              Continuar Recebimento
             </Text>
             <Icon
               name="barcode-outline"
@@ -240,8 +265,9 @@ export function Items({ navigation }) {
                 <View style={{ height: RFPercentage(100), backgroundColor: "#efefef", marginTop: 10, flex: 1 }}>
                   <TouchableOpacity onPress={() => setOpenCameraReader(false)} style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 24, marginLeft: 12}}>
                       <Icon
-                        name="chevron-back-outline"
-                        size={30}
+                        name="arrow-back"
+                        size={22}
+                        style={{ marginRight: 34 }}
                         color={colors['gray-500']}
                       />
                       <Text style={{ fontWeight: 'bold', fontSize: 18 }}>Leitura da Etiqueta</Text>
@@ -265,10 +291,10 @@ export function Items({ navigation }) {
       {openQuantityInform && openQuantityInform.length > 0 && !loading ?
         <Modal animationType="slide"  transparent={true} visible={openQuantityInform && openQuantityInform.length > 0}
         onRequestClose={() => {
-            setOpenQuantityInform(null);
+            setOpenQuantityInform(openQuantityInformDefault);
         }}>
           <View style={{ height: RFPercentage(50), backgroundColor: "#efefef", marginTop: 10, flex: 1 }}>
-            <TouchableOpacity onPress={() => {setOpenQuantityInform(null); setOpenCameraReader(true)}} style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 24, marginLeft: 12}}>
+            <TouchableOpacity onPress={() => {setOpenQuantityInform(openQuantityInformDefault); setOpenCameraReader(true)}} style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 24, marginLeft: 12}}>
                 <Icon
                   name="chevron-back-outline"
                   size={30}
@@ -286,7 +312,6 @@ export function Items({ navigation }) {
                   <View style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-start', gap: 6, width: '40%' }}>
                     
                     <TextInput 
-                      // value={inform.qtdScan ? inform.qtdScan.toString() : null} 
                       onChangeText={val => inform.qtdScan = parseInt(val)}
                       autoFocus={index === 0 ? true : false}
                       keyboardType='numeric'

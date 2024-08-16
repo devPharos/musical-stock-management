@@ -1,18 +1,18 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import Ibanez from '.'
-import { IbanezProvider } from '../../../hooks/ibanez'
 import { colors } from '../../../styles/colors'
 import { TouchableOpacity } from 'react-native'
 import Icon from 'react-native-vector-icons/Ionicons'
+import { SeparacaoProvider } from '../../../hooks/separacao'
 import { useUser } from '../../../hooks/user'
+import Separacao from '.'
 const Stack = createNativeStackNavigator()
 
-export default function IbanezRootProvider({ navigation }) {
+export default function SeparacaoRProvider({ navigation }) {
   const { ambiente } = useUser();
   return (
-    <IbanezProvider>
+    <SeparacaoProvider>
       <Stack.Navigator
-        initialRouteName="Ibanez"
+        initialRouteName="Separacao"
         screenOptions={{
           headerBackTitleVisible: false,
           headerTintColor: colors['gray-500'],
@@ -20,10 +20,10 @@ export default function IbanezRootProvider({ navigation }) {
         }}
       >
         <Stack.Screen
-          name="IbanezRaiz"
-          component={Ibanez}
+          name="SeparacaoRaiz"
+          component={Separacao}
           options={{
-            title: 'Inspeção Ibanez',
+            title: 'Separacao',
             headerLeft: () => (
               <TouchableOpacity onPress={() => navigation.goBack()}>
                 <Icon
@@ -36,7 +36,8 @@ export default function IbanezRootProvider({ navigation }) {
             ),
           }}
         />
+
       </Stack.Navigator>
-    </IbanezProvider>
+    </SeparacaoProvider>
   )
 }

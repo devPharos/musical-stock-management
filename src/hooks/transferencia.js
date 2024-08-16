@@ -20,6 +20,16 @@ export const TransferenciaContext = createContext({
     },
     QTDE: 0,
   },
+  transfer: {
+    PRODUTOS: [],
+    ARMAZEMDEORIGEM: '',
+    ARMAZEMDEDESTINO: '',
+    ENDERECODEORIGEM: '',
+    ENDERECODEDESTINO: '',
+    SERIALNUMBER: '',
+    TEMSN: false
+  },
+  setTransfer: () => {},
   setProduct: () => {},
   setDestinationAddress: () => {},
   destinationAddress: {
@@ -32,6 +42,15 @@ export const TransferenciaContext = createContext({
 })
 
 const TransferenciaProvider = ({ children }) => {
+  const [transfer, setTransfer] = useState({
+    PRODUTOS: [],
+    ARMAZEMDEORIGEM: '',
+    ARMAZEMDEDESTINO: '',
+    ENDERECODEORIGEM: '',
+    ENDERECODEDESTINO: '',
+    SERIALNUMBER: '',
+    TEMSN: false
+  })
   const [originAddress, setOriginAddress] = useState({
     ARMAZEM: '',
     CODIGO: '',
@@ -65,6 +84,8 @@ const TransferenciaProvider = ({ children }) => {
         setOriginAddress,
         product,
         setProduct,
+        transfer,
+        setTransfer,
         destinationAddress,
         setDestinationAddress,
       }}

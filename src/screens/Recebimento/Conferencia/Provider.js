@@ -1,6 +1,6 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import Conferencia from '.'
-import { ConferenceProvider } from '../../../hooks/conference'
+import Recebimento from '.'
+import { RecebimentoProvider } from '../../../hooks/recebimento'
 import { Items } from './Items'
 import { colors } from '../../../styles/colors'
 import { TouchableOpacity } from 'react-native'
@@ -8,12 +8,12 @@ import Icon from 'react-native-vector-icons/Ionicons'
 import { useUser } from '../../../hooks/user'
 const Stack = createNativeStackNavigator()
 
-export default function ConferenciaRootProvider({ navigation }) {
+export default function RecebimentoRootProvider({ navigation }) {
   const { ambiente } = useUser();
   return (
-    <ConferenceProvider>
+    <RecebimentoProvider>
       <Stack.Navigator
-        initialRouteName="Conferencia"
+        initialRouteName="RecebimentoConferencia"
         screenOptions={{
           headerBackTitleVisible: false,
           headerTintColor: colors['gray-500'],
@@ -21,15 +21,16 @@ export default function ConferenciaRootProvider({ navigation }) {
         }}
       >
         <Stack.Screen
-          name="ConferenciaRaiz"
-          component={Conferencia}
+          name="RecebimentoConferenciaRaiz"
+          component={Recebimento}
           options={{
-            title: 'Conferência',
+            title: 'Recebimento',
             headerLeft: () => (
               <TouchableOpacity onPress={() => navigation.goBack()}>
                 <Icon
-                  name="chevron-back-sharp"
-                  size={30}
+                  name="arrow-back"
+                  size={22}
+                  style={{ marginRight: 34 }}
                   color={colors['gray-500']}
                 />
               </TouchableOpacity>
@@ -40,10 +41,10 @@ export default function ConferenciaRootProvider({ navigation }) {
           name="Items"
           component={Items}
           options={{
-            title: 'Conferência de Itens',
+            title: 'Recebimento de Itens',
           }}
         />
       </Stack.Navigator>
-    </ConferenceProvider>
+    </RecebimentoProvider>
   )
 }

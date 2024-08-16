@@ -1,18 +1,18 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import Ibanez from '.'
-import { IbanezProvider } from '../../../hooks/ibanez'
 import { colors } from '../../../styles/colors'
 import { TouchableOpacity } from 'react-native'
 import Icon from 'react-native-vector-icons/Ionicons'
+import { ReimpressaoProvider } from '../../../hooks/reimpressao'
+import Reimpressao from '.'
 import { useUser } from '../../../hooks/user'
 const Stack = createNativeStackNavigator()
 
-export default function IbanezRootProvider({ navigation }) {
+export default function ReimpressaoRProvider({ navigation }) {
   const { ambiente } = useUser();
   return (
-    <IbanezProvider>
+    <ReimpressaoProvider>
       <Stack.Navigator
-        initialRouteName="Ibanez"
+        initialRouteName="Reimpressao"
         screenOptions={{
           headerBackTitleVisible: false,
           headerTintColor: colors['gray-500'],
@@ -20,10 +20,10 @@ export default function IbanezRootProvider({ navigation }) {
         }}
       >
         <Stack.Screen
-          name="IbanezRaiz"
-          component={Ibanez}
+          name="ReimpressaoRaiz"
+          component={Reimpressao}
           options={{
-            title: 'Inspeção Ibanez',
+            title: 'Reimpressão',
             headerLeft: () => (
               <TouchableOpacity onPress={() => navigation.goBack()}>
                 <Icon
@@ -36,7 +36,8 @@ export default function IbanezRootProvider({ navigation }) {
             ),
           }}
         />
+
       </Stack.Navigator>
-    </IbanezProvider>
+    </ReimpressaoProvider>
   )
 }

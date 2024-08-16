@@ -20,6 +20,7 @@ import axios from 'axios'
 import { useState } from 'react'
 import Icon from 'react-native-vector-icons/Ionicons'
 import { useTransferencia } from '../../../hooks/transferencia'
+import { useUser } from '../../../hooks/user';
 
 export default function Transferencia({ navigation }) {
   const [openOriginScanner, setOpenOriginScanner] = useState(false)
@@ -27,6 +28,7 @@ export default function Transferencia({ navigation }) {
   const [openDestinationScanner, setOpenDestinationScanner] = useState(false)
   const [openSNScanner, setOpenSNScanner] = useState(false)
   const [loading, setLoading] = useState(false)
+  const { refreshAuthentication } = useUser()
 
   const {
     setOriginAddress,
@@ -75,9 +77,9 @@ export default function Transferencia({ navigation }) {
         const data = response.data
 
         const retProduct = {
-          ARMAZEM: data.ARMAZEM,
+          ARMAZEM: '',
           CODIGO: data.CODIGO,
-          ENDERECO: data.ENDERECO,
+          ENDERECO: '',
           PRODUTOS: data.PRODUTOS[0],
           QTDE: data.QTDE,
           TEMSN: data.PRODUTOS[0].TEMSN,
@@ -180,7 +182,9 @@ export default function Transferencia({ navigation }) {
           {
             text: 'Ok',
             onPress: () => {
-              navigation.goBack()
+              if(response.data.Status === 200) {
+                navigation.goBack()
+              }
             }
           }
         ])
@@ -345,7 +349,7 @@ export default function Transferencia({ navigation }) {
                   size={30}
                   color={colors['gray-500']}
                 />
-                <Text style={styles.buttonLabel}>Etiqueta EAN / Lote</Text>
+                <Text style={styles.buttonLabel}>Etiqueta EAN</Text>
 
               </TouchableOpacity>
 
@@ -403,7 +407,7 @@ const styles = StyleSheet.create({
     flex: 1
   },
   buttonLabel: {
-    fontSize: 16,
+    fontSize: 14,
     color: colors['gray-500'],
     fontWeight: '600',
   },

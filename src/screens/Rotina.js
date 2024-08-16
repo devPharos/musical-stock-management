@@ -1,7 +1,14 @@
 import DrawerProfile from "../components/DrawerProfile";
 
 export default function Rotina({ route, navigation }) {
-  const { menuIndex: mainMenu } = route.params;
+  let { menuIndex: mainMenu, acessoRecebimento, acessoEstoque, acessoExpedicao } = route.params;
 
-  return <DrawerProfile navigation={navigation} mainMenu={mainMenu} />
+  if(mainMenu === 1 && !acessoRecebimento && acessoEstoque) {
+    mainMenu = 0;
+  }
+  if(mainMenu === 2 && !acessoExpedicao && acessoEstoque) {
+    mainMenu = 1;
+  }
+
+  return <DrawerProfile navigation={navigation} mainMenu={mainMenu} acessoEstoque={acessoEstoque} acessoExpedicao={acessoExpedicao} acessoRecebimento={acessoRecebimento} />
 }

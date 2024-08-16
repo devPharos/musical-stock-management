@@ -6,7 +6,7 @@ export default function Profile({ navigation,setOpenProfile }) {
 
     function handleLogout() {
       setOpenProfile(false)
-      navigation.push('Login')
+      navigation.popToTop()
     }
     
     return <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'space-between', alignItems: 'flex-start', paddingVertical: 64, paddingHorizontal: 16 }}>

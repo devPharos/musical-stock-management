@@ -3,7 +3,6 @@ import { colors } from '../../../styles/colors'
 import { TouchableOpacity } from 'react-native'
 import Icon from 'react-native-vector-icons/Ionicons'
 import Enderecamento from '.'
-import Confirmacao from './Confirmacao'
 import { EnderecamentoProvider } from '../../../hooks/enderecamento'
 import { useUser } from '../../../hooks/user'
 const Stack = createNativeStackNavigator()
@@ -33,25 +32,9 @@ export default function EnderecamentoRProvider({ navigation }) {
             headerLeft: () => (
               <TouchableOpacity onPress={() => navigation.goBack()}>
                 <Icon
-                  name="chevron-back-sharp"
-                  size={30}
-                  color={colors['gray-500']}
-                />
-              </TouchableOpacity>
-            ),
-          }}
-        />
-
-        <Stack.Screen
-          name="Confirmacao"
-          component={Confirmacao}
-          options={{
-            title: 'Confirmação',
-            headerLeft: () => (
-              <TouchableOpacity onPress={() => navigation.goBack()}>
-                <Icon
-                  name="chevron-back-sharp"
-                  size={30}
+                  name="arrow-back"
+                  size={22}
+                  style={{ marginRight: 34 }}
                   color={colors['gray-500']}
                 />
               </TouchableOpacity>

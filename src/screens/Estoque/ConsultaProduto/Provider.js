@@ -25,8 +25,9 @@ export default function ConsultaProdutoProvider({ navigation }) {
             headerLeft: () => (
               <TouchableOpacity onPress={() => navigation.goBack()}>
                 <Icon
-                  name="chevron-back-sharp"
-                  size={30}
+                  name="arrow-back"
+                  size={22}
+                  style={{ marginRight: 34 }}
                   color={colors['gray-500']}
                 />
               </TouchableOpacity>

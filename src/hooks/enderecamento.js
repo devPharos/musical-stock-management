@@ -26,14 +26,8 @@ export const EnderecamentoContext = createContext({
 const EnderecamentoProvider = ({ children }) => {
   const [addressing, setAddressing] = useState({
     ARMAZEM: '',
-    CODIGO: '',
     ENDERECO: '',
-    PRODUTOS: {
-      DESCRICAO: '',
-      IMAGEM: '',
-      PARTNUMBER: '',
-    },
-    QTDE: 0,
+    PRODUTOS: [],
   })
   const [endereco, setEndereco] = useState({
     CAPACIDADE: 0,

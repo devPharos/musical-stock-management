@@ -5,6 +5,10 @@ import {
   Pressable,
   Text,
   View,
+  Alert,
+  ActivityIndicator,
+  Image,
+  TouchableOpacity,
 } from 'react-native'
 import { colors } from '../../../styles/colors'
 import Scanner from '../../../components/scanner'
@@ -15,76 +19,136 @@ import { useNavigation } from '@react-navigation/native'
 import { useEnderecamento } from '../../../hooks/enderecamento'
 
 export default function Enderecamento() {
-  const { setAddressing, addressing, endereco, setEndereco } =
-    useEnderecamento()
+  const { setAddressing, addressing } = useEnderecamento()
   const [openProductScanner, setOpenProductScanner] = useState(false)
   const [openAddressingScanner, setOpenAddressingScanner] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const navigation =
     useNavigation()
 
   const onCodeProductScanned = (code) => {
+    setLoading(true)
     axios
       .get(`/wBuscaEtiq?Etiqueta=${code}`)
       .then((response) => {
         const data = response.data
 
+        if(addressing.PRODUTOS.find(p => p.ETIQUETA.trim() === code.trim())) {
+          Alert.alert('Atenção!','Produto já na listagem a endereçar.', [
+            {
+              text: 'Ok',
+            }
+          ])
+          setLoading(false)
+          return
+        }
+
         if (data.ENDERECO !== '' && data.PRODUTOS[0].AENDERECAR.length === 0) {
-          throw new Error('Produto já endereçado')
+          setOpenProductScanner(false);
+          Alert.alert('Atenção!','Produto já endereçado', [
+            {
+              text: 'Ok',
+            }
+          ])
+          setLoading(false)
+          return
         }
 
-        const product = data.PRODUTOS[0]
-        const addressing = {
-          ARMAZEM: data.ARMAZEM,
-          CODIGO: data.CODIGO,
-          ENDERECO: data.ENDERECO,
-          PRODUTOS: product,
-          QTDE: data.QTDE,
-        }
-
-        setAddressing(addressing)
+        setAddressing({ ...addressing, PRODUTOS: [...addressing.PRODUTOS, data.PRODUTOS[0]] })
         setOpenProductScanner(false)
+        setLoading(false)
       })
   }
 
   const onCodeAddressingScanned = (code) => {
+    setLoading(true)
     const Armazem = code.substring(0, 2)
     const Endereco = code.substring(2)
+
+    console.log(Armazem, Endereco)
 
     axios
       .get(`/wBuscaEnd?Armazem=${Armazem}&Endereco=${Endereco}`)
       .then((response) => {
         const data = response.data
-        const enderc = {
-          ...data,
-          PRODUTOS: [addressing?.PRODUTOS],
-        }
+        console.log('foi')
+        // const enderc = {
+        //   ...data,
+        //   PRODUTOS: [addressing?.PRODUTOS],
+        // }
+        // console.log({...addressing, armazem: Armazem, endereco: Endereco})
 
-        setEndereco(enderc)
+        setAddressing({...addressing, ARMAZEM: Armazem, ENDERECO: Endereco})
         setOpenAddressingScanner(false)
+        setLoading(false)
       })
       .catch((error) => {
+        console.log(error)
+        setOpenAddressingScanner(false)
         if (error) {
-          throw new Error('Endereço de destino não encontrado')
+          Alert.alert('Atenção!','Endereço de destino não encontrado', [
+            {
+              text: 'Ok',
+            }
+          ])
+          setLoading(false)
+          return
         }
       })
   }
 
-  const handleAdressingConfirmation = () => {
-    navigation.navigate(
-      'Confirmacao',
-      addressing || {
-        ARMAZEM: '',
-        CODIGO: '',
-        ENDERECO: '',
-        PRODUTOS: {
-          DESCRICAO: '',
-          IMAGEM: '',
-          PARTNUMBER: '',
-        },
-        QTDE: 0,
-      },
-    )
+  function handleRemove(product) {
+    const newProducts = addressing.PRODUTOS.filter(p => p.ETIQUETA.trim() !== product.ETIQUETA.trim())
+    setAddressing({...addressing, PRODUTOS: newProducts})
+  }
+
+  function handleEndConference(){
+    setLoading(true)
+
+    if(!addressing.ARMAZEM || !addressing.ENDERECO) {
+      Alert.alert('Atenção!','Endereço de destino não definido.', [
+        {
+          text: 'Ok',
+        }
+      ])
+      setLoading(false)
+      return
+    }
+
+    if(addressing.PRODUTOS.length === 0) {
+      Alert.alert('Atenção!','Nenhum produto selecionado.', [
+        {
+          text: 'Ok',
+        }
+      ])
+      setLoading(false)
+      return
+    }
+
+    const body = {
+      produtos: addressing.PRODUTOS,
+      armazem: addressing.ARMAZEM,
+      endereco: addressing.ENDERECO,
+    }
+    // console.log(body)
+    axios
+      .post(`/wEnderecar`, body)
+      .then(() => {
+        setLoading(false)
+        Alert.alert('Atenção!',response.data.Message, [
+          {
+            text: 'Ok',
+            onPress: () => {
+              navigation.popToTop()
+            }
+          }
+        ])
+      }).catch(err => {
+        console.log(err)
+        Alert.alert('Atenção!', err.message)
+        setLoading(false)
+      })
   }
 
   return (
@@ -93,98 +157,111 @@ export default function Enderecamento() {
         source={require('../../../assets/bg.png')}
         style={styles.content}
       >
-        {openProductScanner && (
-          <Scanner handleCodeScanned={onCodeProductScanned} />
-        )}
-        {openAddressingScanner && (
-          <Scanner handleCodeScanned={onCodeAddressingScanned} />
-        )}
-        {!(openProductScanner || openAddressingScanner) && (
-          <View style={styles.innerContent}>
-            <View style={styles.inputContent}>
-              <View style={styles.textContainer}>
-                <Text style={styles.buttonLabel}>Produto</Text>
-                {addressing.CODIGO !== '' && (
+        { loading ? <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8 }}><ActivityIndicator color={colors["green-300"]} /><Text>Buscando...</Text></View>
+        :
+        <>
+          {!loading && openProductScanner && (
+            <Scanner handleCodeScanned={onCodeProductScanned} handleClose={() => setOpenProductScanner(false)} />
+          )}
+          {!loading && openAddressingScanner && (
+            <Scanner handleCodeScanned={onCodeAddressingScanned}  handleClose={() => setOpenAddressingScanner(false)} />
+          )}
+          {!(openProductScanner || openAddressingScanner) && (
+            <View style={styles.innerContent}>
+              <View style={styles.inputContent}>
+                <View style={styles.textContainer}>
+                  <Text style={styles.buttonLabel}>Produtos</Text>
+                  {addressing.PRODUTOS.length > 0 && (
+                  <View style={{ backgroundColor: colors['green-300'], paddingHorizontal: 4, borderRadius: 4, marginLeft: 4 }}>
+                    <Text style={{ color: colors.white, fontWeight: '700' }}>{addressing.PRODUTOS.length}</Text>
+                  </View>)}
+                </View>
+                <Pressable
+                  style={styles.button}
+                  onPress={() => setOpenProductScanner(true)}
+                >
+                  <Text style={styles.buttonLabel}>
+                    Escanear
+                  </Text>
                   <Icon
-                    name="checkmark-circle"
-                    size={20}
-                    color={colors['green-300']}
+                    name="barcode-outline"
+                    size={30}
+                    color={colors['gray-500']}
                   />
-                )}
+                </Pressable>
               </View>
-              <Pressable
-                style={styles.button}
-                onPress={() => setOpenProductScanner(true)}
-              >
-                <Text style={styles.buttonLabel}>
-                  {addressing.CODIGO !== '' ? addressing.CODIGO : 'Escanear'}
-                </Text>
-                <Icon
-                  name="barcode-outline"
-                  size={30}
-                  color={colors['gray-500']}
-                />
-              </Pressable>
-            </View>
 
-            <View style={styles.inputContent}>
-              <View style={styles.textContainer}>
-                <Text style={styles.buttonLabel}>Endereço</Text>
-                {endereco.DESCRICAO !== '' && (
+              <View style={styles.inputContent}>
+                <View style={styles.textContainer}>
+                  <Text style={styles.buttonLabel}>Endereço</Text>
+                </View>
+                <Pressable
+                  style={styles.button}
+                  onPress={() => setOpenAddressingScanner(true)}
+                >
+                  <Text style={styles.buttonLabel}>
+                    {addressing.ENDERECO !== '' ? addressing.ENDERECO : 'Escanear'}
+                  </Text>
                   <Icon
-                    name="checkmark-circle"
-                    size={20}
-                    color={colors['green-300']}
+                    name="barcode-outline"
+                    size={30}
+                    color={colors['gray-500']}
                   />
-                )}
+                </Pressable>
               </View>
-              <Pressable
-                style={styles.button}
-                onPress={() => setOpenAddressingScanner(true)}
-              >
-                <Text style={styles.buttonLabel}>
-                  {endereco.ENDERECO !== '' ? endereco.ENDERECO : 'Escanear'}
-                </Text>
-                <Icon
-                  name="barcode-outline"
-                  size={30}
-                  color={colors['gray-500']}
-                />
-              </Pressable>
-            </View>
 
-            <Pressable
-              disabled={
-                !(addressing.CODIGO !== '' && endereco.DESCRICAO !== '')
-              }
-              style={
-                !(addressing.CODIGO !== '' && endereco.DESCRICAO !== '')
-                  ? styles.buttonDisabled
-                  : styles.button
-              }
-              onPress={handleAdressingConfirmation}
-            >
-              <Text
+              <Pressable
+                disabled={
+                  !(addressing.CODIGO !== '' && addressing.DESCRICAO !== '')
+                }
                 style={
-                  !(addressing.CODIGO !== '' && endereco.DESCRICAO !== '')
-                    ? styles.buttonLabelDisabled
-                    : styles.buttonLabel
+                  !(addressing.CODIGO !== '' && addressing.DESCRICAO !== '')
+                    ? styles.buttonDisabled
+                    : styles.button
                 }
+                onPress={handleEndConference}
               >
-                Continuar
-              </Text>
-              <Icon
-                name="arrow-forward"
-                size={20}
-                color={
-                  !(addressing.CODIGO !== '' && endereco.DESCRICAO !== '')
-                    ? colors['gray-300']
-                    : colors['gray-500']
-                }
-              />
-            </Pressable>
-          </View>
-        )}
+                <Text
+                  style={
+                    !(addressing.CODIGO !== '' && addressing.DESCRICAO !== '')
+                      ? styles.buttonLabelDisabled
+                      : styles.buttonLabel
+                  }
+                >
+                  Confirmar Endereçamento
+                </Text>
+                <Icon
+                  name="arrow-forward"
+                  size={20}
+                  color={
+                    !(addressing.CODIGO !== '' && addressing.DESCRICAO !== '')
+                      ? colors['gray-300']
+                      : colors['gray-500']
+                  }
+                />
+              </Pressable>
+            </View>
+          )}
+
+          {
+          !openAddressingScanner && !openProductScanner && addressing.PRODUTOS.length > 0 && addressing.PRODUTOS.map((product, index) => ( 
+            <View key={index} style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', padding: 8, gap: 8, borderBottomWidth: 1, borderBottomColor: colors['gray-200'] }}>
+              <TouchableOpacity onPress={() => handleRemove(product)}>
+                <Icon name="trash-bin" size={20} color={colors['red-500']} />
+              </TouchableOpacity>
+              <Image source={{ uri: product.IMAGEM }} style={{ width: 32, height: 32 }} />
+              <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start' }}>
+                <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-start', gap: 2, alignItems: 'center' }}>
+                  <Icon name="barcode-outline" size={16} color={colors['gray-300']} />
+                  <Text style={{ fontSize: 12, fontWeight: 'bold' }}>{product.ETIQUETA}</Text>
+                </View>
+                <Text style={{ fontSize: 12 }}>{product.PARTNUMBER} - {product.DESCRICAO.substring(0, 16)}...</Text>
+              </View>
+            </View>
+          ))
+          }
+        </>
+        }
       </ImageBackground>
     </SafeAreaView>
   )

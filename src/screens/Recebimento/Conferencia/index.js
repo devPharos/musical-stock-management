@@ -5,23 +5,17 @@ import {
   ImageBackground,
   TouchableOpacity,
   View,
-  TextInput,
   ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  Alert,
 } from 'react-native'
 import { colors } from '../../../styles/colors'
 import { ReceiptCard } from '../../../components/receiptCard'
 import Icon from 'react-native-vector-icons/Ionicons'
 import { useEffect, useState } from 'react'
 import axios from 'axios'
-import { useUser } from '../../../hooks/user'
-import { useConference } from '../../../hooks/conference'
+import { useRecebimento } from '../../../hooks/recebimento'
 
-export default function Conferencia({ navigation }) {
-  const { user, baseURL } = useUser()
-  const { selectedInvoices, setSelectedInvoices, setInvoiceItems } = useConference()
+export default function Recebimento({ navigation }) {
+  const { selectedInvoices, setSelectedInvoices, setInvoiceItems } = useRecebimento()
   const [loading, setLoading] = useState(true)
 
   const [invoices, setInvoices] = useState([]);
@@ -43,6 +37,11 @@ export default function Conferencia({ navigation }) {
       })
   }, [])
 
+  function iniciarRecebimento() {
+    // setInvoiceItems()
+    navigation.navigate('Items')
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <ImageBackground
@@ -52,7 +51,7 @@ export default function Conferencia({ navigation }) {
         {invoices && (
           <View style={styles.container}>
             <View style={styles.header}>
-              <Text style={styles.title}>Selecione as notas a conferir:</Text>
+              <Text style={styles.title}>Selecione as notas a receber:</Text>
             </View>
             <ScrollView style={{ flex: 1 }}>
               <ReceiptCard invoices={invoices} setInvoices={setInvoices} loading={loading} />
@@ -68,7 +67,7 @@ export default function Conferencia({ navigation }) {
                 : styles.buttonDisabled
             }
             disabled={invoices.length === 0}
-            onPress={() => navigation.navigate('Items')}
+            onPress={iniciarRecebimento}
           >
             <Text
               style={
@@ -77,7 +76,7 @@ export default function Conferencia({ navigation }) {
                   : styles.buttonLabelDisabled
               }
             >
-              Iniciar Conferência
+              Iniciar Recebimento
             </Text>
             <Icon name="arrow-forward" color={colors['gray-500']} size={16} />
           </TouchableOpacity>

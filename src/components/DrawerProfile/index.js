@@ -3,7 +3,7 @@ import { DrawerLayoutAndroid, SafeAreaView, StyleSheet } from 'react-native';
 import StackNavigator from '../StackNavigator';
 import Profile from '../../screens/Profile';
 
-export default function DrawerProfile({ navigation, mainMenu }) {
+export default function DrawerProfile({ navigation, mainMenu, acessoRecebimento, acessoEstoque, acessoExpedicao }) {
     const profileRef = useRef(null);
     const [openProfile, setOpenProfile] = useState(false);
   
@@ -28,7 +28,7 @@ export default function DrawerProfile({ navigation, mainMenu }) {
   onDrawerClose={handleCloseDrawer}
   unmountOnBlur={true}
   renderNavigationView={navigationView}>
-  <StackNavigator navigation={navigation} mainMenu={mainMenu} setOpenProfile={setOpenProfile} />
+  <StackNavigator navigation={navigation} mainMenu={mainMenu} setOpenProfile={setOpenProfile} acessoEstoque={acessoEstoque} acessoExpedicao={acessoExpedicao} acessoRecebimento={acessoRecebimento} />
 </DrawerLayoutAndroid></SafeAreaView>;
 }
 

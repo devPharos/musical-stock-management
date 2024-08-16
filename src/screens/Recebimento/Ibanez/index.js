@@ -48,6 +48,7 @@ export default function Ibanez({ navigation }) {
   const [consultarProduto, setConsultarProduto] = useState(null)
   const [camType, setCamType] = useState('photo');
   const [time, setTime] = useState(0)
+  const armazensDestino = [{ val: '01', label: 'Vendas' }, { val: '26', label: 'Outlet' }, { val: '27', label: 'Cemitério' }, { val: '28', label: 'Aguardando Peça' }, { val: '29', label: 'Reparo Interno'}]
 
   const videoRef = useRef(null);
 
@@ -66,12 +67,12 @@ export default function Ibanez({ navigation }) {
     if (loading) {
       return;
     }
-    setSelectedPendente({ BLOQVENDA: 'N', CONFORMIDADE: 'S', MOTIVO: [], ESCALA: 1 })
+    const defaultSelectedPendente = { BLOQVENDA: 'N', CONFORMIDADE: 'S', MOTIVO: [], ESCALA: 1, ARMAZEMDEST: '01', PECASDESCRICOES: '', PECASPARTNUMBERS: '' }
     setLoading(true);
 
     if (buscarPor === 'etiqueta' && data.toUpperCase() === inCamera.ETIQUETA.toUpperCase()) {
       // Trecho de consulta
-      setSelectedPendente({ ...selectedPendente, ...inCamera })
+      setSelectedPendente({ ...defaultSelectedPendente, ...selectedPendente, ...inCamera })
       setTimeout(() => {
         setOpenCameraReader(null);
         if (inCamera.NUMSERIE === '') {
@@ -109,7 +110,7 @@ export default function Ibanez({ navigation }) {
           .then(({ data: retorno }) => {
             setLoading(false)
             setOpenCameraReader(null)
-            setSelectedPendente({ ...selectedPendente, ...inCamera, NUMSERIE: data.toUpperCase() })
+            setSelectedPendente({ ...defaultSelectedPendente, ...selectedPendente, ...inCamera, NUMSERIE: data.toUpperCase() })
           })
       }
       setLoading(false);
@@ -117,7 +118,7 @@ export default function Ibanez({ navigation }) {
       axios.get(`/wIbanezEan?EAN=${data.toUpperCase()}`)
         .then(({ data }) => {
           setOpenCameraReader(null)
-          setSelectedPendente({ ...selectedPendente, ...data })
+          setSelectedPendente({ ...defaultSelectedPendente, ...selectedPendente, ...data })
           setBuscarPor('numserie')
           Alert.alert('Atenção!', 'Este produto ainda não possui número de série.\nPor favor, bipe a etiqueta do número de série do produto.', [
             {
@@ -145,6 +146,12 @@ export default function Ibanez({ navigation }) {
     }
     // setLoading(false);
   };
+
+  useEffect(() => {
+    if(selectedPendente) {
+      console.log(selectedPendente.ARMAZEMDEST)
+    }
+  },[selectedPendente])
 
   function handleMotivo(index) {
     const motivosSelecionados = [...selectedPendente.MOTIVO];
@@ -200,10 +207,16 @@ export default function Ibanez({ navigation }) {
       BloqVenda: selectedPendente.CONFORMIDADE === 'S' ? 'N' : (selectedPendente.BLOQVENDA || 'N'),
       Conformidade: selectedPendente.CONFORMIDADE,
       Observacoes: selectedPendente.OBSERVACOES,
-      ESCALA: selectedPendente.ESCALA
+      Escala: selectedPendente.ESCALA,
+      ArmazemDest: selectedPendente.ARMAZEMDEST || '01',
+      PecasDesc: selectedPendente.PECASDESCRICOES || '' ,
+      PecasPN: selectedPendente.PECASPARTNUMBERS || ''
     }
 
+    console.log(selectedPendente)
+
     setLoading(false)
+
     try {
       axios
         .post(`/wIbanez`, body)
@@ -218,6 +231,7 @@ export default function Ibanez({ navigation }) {
             setLoading(false)
           }
         }).catch((error) => {
+          console.log(body, error)
           Alert.alert('Atenção!', error.message)
         })
     } catch (err) {
@@ -377,8 +391,6 @@ export default function Ibanez({ navigation }) {
             </View>
           }
 
-
-
           <View style={{ backgroundColor: "#efefef", paddingBottom: 16 }}>
             <Pressable onPress={() => setSelectedPendente({ ...selectedPendente, CONFORMIDADE: 'S' })} style={{ padding: 16, backgroundColor: selectedPendente.CONFORMIDADE === 'S' ? colors["green-300"] : colors["gray-50"], borderBottomWidth: 1, borderColor: "#ccc" }}>
               <Text style={{ textAlign: 'center', fontWeight: 'bold' }}>Em Conformidade</Text>
@@ -419,10 +431,10 @@ export default function Ibanez({ navigation }) {
                   </TouchableOpacity>
                 })}
 
+              </>}
 
               <Text style={{ marginTop: 32, color: "#868686", fontWeight: 'bold' }}>Problemas:</Text>
               <TextInput onChangeText={Observacoes => setSelectedPendente({ ...selectedPendente, OBSERVACOES: Observacoes })} multiline={true} numberOfLines={3} style={{ padding: 16, borderWidth: 1, borderRadius: 4, borderColor: "#ccc", width: '100%' }} />
-
 
               <View style={{ backgroundColor: "#efefef", width: '100%' }}>
                 { fotos.length > 0 && (
@@ -444,7 +456,34 @@ export default function Ibanez({ navigation }) {
                 </TouchableOpacity>
               </View>
 
+
+              <Text style={{ marginTop: 32, color: "#868686", fontWeight: 'bold' }}>Armazém de Destino</Text>
+              <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', width: '100%', gap: 16, marginTop: 12 }}>
+                {armazensDestino.map(({ val, label }) => {
+                  return <TouchableOpacity onPress={() => setSelectedPendente({ ...selectedPendente, ARMAZEMDEST: val })} key={val} style={{ flexDirection: 'column', justifyContent: 'center', alignItems: 'center', borderWidth: 1, backgroundColor: selectedPendente.ESCALA >= val ? '#FFF' : 'transparent', borderColor: colors["gray-200"], borderRadius: 8, paddingHorizontal: 8, height: 36 }}>
+                  <Text style={{ color: selectedPendente.ARMAZEMDEST === val ? '#111' : colors["gray-200"] }}>{val}</Text>
+                </TouchableOpacity>
+                } )}
+
+              </View>
+
+              {armazensDestino.map((arm) => {
+                  if(arm.val === selectedPendente.ARMAZEMDEST) {
+                    return <Text style={{ fontSize: 16, fontWeight: '200', textAlign: 'center', width: '100%', marginTop: 16 }}>{arm.label}</Text>
+                  }
+              })}
+
+
+              { selectedPendente.ARMAZEMDEST === '28' &&
+              <>
+              <Text style={{ marginTop: 32, color: "#868686", fontWeight: 'bold' }}>Peças - Descrições:</Text>
+              <TextInput onChangeText={descricoes => setSelectedPendente({ ...selectedPendente, PECASDESCRICOES: descricoes })} multiline={true} numberOfLines={3} style={{ padding: 16, borderWidth: 1, borderRadius: 4, borderColor: "#ccc", width: '100%' }} />
+
+              <Text style={{ marginTop: 32, color: "#868686", fontWeight: 'bold' }}>Peças - Partnumbers:</Text>
+              <TextInput onChangeText={partnumbers => setSelectedPendente({ ...selectedPendente, PECASPARTNUMBERS: partnumbers })} multiline={true} numberOfLines={3} style={{ padding: 16, borderWidth: 1, borderRadius: 4, borderColor: "#ccc", width: '100%' }} />
               </>}
+              
+
 
 
               {buscarPor === 'numserie' && !printed && selectedPendente.NUMSERIE && <TouchableOpacity
@@ -452,6 +491,7 @@ export default function Ibanez({ navigation }) {
                 style={{ padding: 16, marginTop: 16, backgroundColor: colors["gray-100"], width: '100%', borderRadius: 4 }}>
                 <Text style={{ textAlign: 'center', color: "#111", fontWeight: 'bold' }}>Imprimir Etiqueta</Text>
               </TouchableOpacity>}
+              
               {selectedPendente.NUMSERIE && printed && selectedPendente.CONFORMIDADE && <TouchableOpacity
                 onPress={handleInspecao}
                 style={{ padding: 16, backgroundColor: colors["gray-100"], borderRadius: 4 }}>

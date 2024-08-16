@@ -1,22 +1,25 @@
-import { StyleSheet, ImageBackground } from 'react-native'
+import { StyleSheet, ImageBackground, ScrollView } from 'react-native'
 import CustomButton from '../../components/button'
 import { useUser } from '../../hooks/user';
 
 export default function Atualizacoes({ navigation, route }) {
   const { user } = useUser()
-  const { mainMenu, bottomTab } = route.params;
+  let { mainMenu, bottomTab } = route.params;
+  if(user.menus.findIndex(menu => menu.CODIGO === '100') === -1) {
+    mainMenu = 0;
+  }
   return (
     <ImageBackground
       style={styles.container}
       source={require('../../assets/bg.png')}
     >
       { bottomTab === 'Recebimento' &&
-      <>
+      <ScrollView style={{ height: '100%' }}>
         {user.menus[mainMenu].SUBMENU.findIndex(menu => menu.CODIGO === '101') > -1 &&
         <CustomButton
-          label="Conferência"
-          detail="Processo de conferência de notas fiscais de entrada."
-          navigatePath="Conferencia"
+          label="Recebimento"
+          detail="Processo de recebimento de notas fiscais de entrada."
+          navigatePath="RecebimentoConferencia"
           navigation={navigation}
           type="secondary"
         />}
@@ -36,10 +39,10 @@ export default function Atualizacoes({ navigation, route }) {
           navigation={navigation}
           type="secondary"
         />}
-      </>}
+      </ScrollView>}
       
       { bottomTab === 'Estoque' &&
-      <>
+      <ScrollView style={{ height: '100%' }}>
         {user.menus[mainMenu].SUBMENU.findIndex(menu => menu.CODIGO === '201') > -1 &&
         <CustomButton
           label="Endereçamento Cx. Master"
@@ -50,13 +53,41 @@ export default function Atualizacoes({ navigation, route }) {
         />}
         {user.menus[mainMenu].SUBMENU.findIndex(menu => menu.CODIGO === '202') > -1 &&
         <CustomButton
-          label="Transferência de Endereço"
-          detail="Processo de transferência de produtos entre endereços."
+          label="Transferência EAN"
+          detail="Ttransferência de produtos por EAN."
           navigatePath="Transferencia"
           navigation={navigation}
           type="secondary"
         />}
-      </>}
+        {user.menus[mainMenu].SUBMENU.findIndex(menu => menu.CODIGO === '204') > -1 &&
+        <CustomButton
+          label="Transferência de Lotes"
+          detail="Transferência de produtos por etiqueta de lotes."
+          navigatePath="TransferenciaLote"
+          navigation={navigation}
+          type="secondary"
+        />}
+        {user.menus[mainMenu].SUBMENU.findIndex(menu => menu.CODIGO === '203') > -1 &&
+        <CustomButton
+          label="Reimpressão de Etiquetas"
+          detail="Rotina de reimpressão de etiquetas."
+          navigatePath="Reimpressao"
+          navigation={navigation}
+          type="secondary"
+        />}
+      </ScrollView>}
+      
+      { bottomTab === 'Expedicao' &&
+      <ScrollView style={{ height: '100%' }}>
+        {user.menus[mainMenu].SUBMENU.findIndex(menu => menu.CODIGO === '301') > -1 &&
+        <CustomButton
+          label="Separação de Pedidos"
+          detail="Processo de separação de pedidos de vendas."
+          navigatePath="Separacao"
+          navigation={navigation}
+          type="secondary"
+        />}
+      </ScrollView>}
     </ImageBackground>
   )
 }

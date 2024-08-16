@@ -28,9 +28,8 @@ import { CameraView, useCameraPermissions } from 'expo-camera'
   
 export default function LoteNumseq({ navigation }) {
   const [openCameraReader, setOpenCameraReader] = useState(null);
-  const { ambiente, user, refreshAuthentication } = useUser()
-  const [loading, setLoading] = useState(true)
-  const [pendentes, setPendentes] = useState(null)
+  const { ambiente } = useUser()
+  const [loading, setLoading] = useState(false)
   const [selectedLote, setSelectedLote] = useState(null)
   const [buscarPor, setBuscarPor] = useState('lote')
   const [permission, requestPermission] = useCameraPermissions()
@@ -91,19 +90,6 @@ export default function LoteNumseq({ navigation }) {
       setSelectedLote({...selectedLote, NUMSERIES: newSeries})
   }
 
-  const renderItem = ({item}) => {
-
-    return (
-      <Item
-        item={item}
-        onPress={() => {
-          setBuscarPor('etiqueta')
-          setOpenCameraReader(item)
-        }}
-      />
-    );
-  };
-
   function handleLote() {
     setBuscarPor('lote')
     setOpenCameraReader({ ETIQUETA: 'Etiqueta de Lote' })
@@ -125,7 +111,6 @@ export default function LoteNumseq({ navigation }) {
         Alert.alert('Atenção!',error.message)
       })
   }
-
 
   const navigationView = () => (
     <View style={[styles.container, styles.navigationContainer]}>
@@ -163,26 +148,6 @@ export default function LoteNumseq({ navigation }) {
       : null }
     </View>
   );
-
-  useEffect(() => {
-    async function buscaPendentes() {
-      await axios
-      .get(`/wIbanez`)
-      .then((response) => {
-        setPendentes(response.data.RESULTADOS)
-        setLoading(false)
-      })
-      .catch((error) => {
-        if (error) {
-          if(error.message?.includes('401')) {
-              refreshAuthentication();
-          }
-          setLoading(false)
-        }
-      })
-    }
-    buscaPendentes()
-  }, [selectedLote, user.refresh_token])
 
   useEffect(() => {
     if(selectedLote) {
@@ -258,16 +223,6 @@ export default function LoteNumseq({ navigation }) {
                 </>
               </TouchableOpacity>}
 
-              {pendentes?.length > 0 && <FlatList data={pendentes}
-                renderItem={renderItem}
-                keyExtractor={item => item.ETIQUETA}
-                extraData={selectedLote} style={{ flex: 1, width: '100%' }} />}
-              { loading && <View style={{ backgroundColor:"#FFF", borderRadius: 8, padding: 8, width: 200 }}>
-                <Text style={{ textAlign: 'center' }}>Buscando...</Text>
-              </View>}
-              {pendentes?.length === 0 && !loading && <View style={{ backgroundColor:"#FFF", borderRadius: 8, padding: 8, width: 200 }}>
-                <Text style={{ textAlign: 'center' }}>Não há grupos de números de série.</Text>
-              </View>}
             </View>
           </View>
         </DrawerLayoutAndroid>

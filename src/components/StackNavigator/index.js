@@ -2,7 +2,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
 import Icon from 'react-native-vector-icons/Ionicons'
 import TopTabs from '../TopTabs';
-import ConferenciaRootProvider from '../../screens/Recebimento/Conferencia/Provider';
 import IbanezRootProvider from '../../screens/Recebimento/Ibanez/Provider';
 import EmbarquesRootProvider from '../../screens/Recebimento/Embarques/Provider';
 import { useUser } from '../../hooks/user';
@@ -10,15 +9,19 @@ import { colors } from '../../styles/colors';
 // import ProfileButton from '../Header/ProfileButton';
 import ConfigButton from '../Header/ConfigButton';
 import EnderecamentoRProvider from '../../screens/Estoque/Enderecamento/Provider';
-import TransferenciaRProvider from '../../screens/Estoque/Transferencia/Provider';
+import TransferenciaRProvider from '../../screens/Estoque/TransferenciaEAN/Provider';
 import ConsultaProdutoProvider from '../../screens/Estoque/ConsultaProduto/Provider';
 import ConsultaEnderecoProvider from '../../screens/Estoque/ConsultaEndereco/Provider';
 import LoteNumseqRootProvider from '../../screens/Recebimento/LoteNumseq/Provider';
 import { Text, TouchableOpacity } from 'react-native';
+import ReimpressaoRProvider from '../../screens/Estoque/Reimpressao/Provider';
+import SeparacaoRProvider from '../../screens/Expedicao/Separacao/Provider';
+import TransferenciaLoteRProvider from '../../screens/Estoque/TransferenciaLote/Provider';
+import RecebimentoRootProvider from '../../screens/Recebimento/Conferencia/Provider';
 
 const Stack = createNativeStackNavigator()
 
-const StackNavigator = ({ navigation, mainMenu, setOpenProfile }) => {
+const StackNavigator = ({ navigation, mainMenu, acessoRecebimento, acessoEstoque, acessoExpedicao }) => {
     const { ambiente } = useUser();
   return <Stack.Navigator
   initialRouteName="TopTabs"
@@ -36,8 +39,8 @@ const StackNavigator = ({ navigation, mainMenu, setOpenProfile }) => {
       </>
     ),
   }}
->
-    { mainMenu == 0 && <Stack.Group>
+>   
+    { (mainMenu == 0 && acessoRecebimento) || (mainMenu === 0 && acessoRecebimento && !acessoEstoque && !acessoExpedicao) ? <Stack.Group>
         <Stack.Screen
         name="TopTabs"
         component={TopTabs}
@@ -47,11 +50,11 @@ const StackNavigator = ({ navigation, mainMenu, setOpenProfile }) => {
         initialParams={{ mainMenu, bottomTab: 'Recebimento' }}
     />
     <Stack.Screen
-        name="Conferencia"
-        component={ConferenciaRootProvider}
+        name="RecebimentoConferencia"
+        component={RecebimentoRootProvider}
         options={{
         headerShown: false,
-        title: 'Conferência',
+        title: 'Recebimento',
         }}
     />
     <Stack.Screen
@@ -78,8 +81,8 @@ const StackNavigator = ({ navigation, mainMenu, setOpenProfile }) => {
         title: 'Embarques Futuros',
         }}
     />
-    </Stack.Group>}
-    { mainMenu === 1 && <Stack.Group>
+    </Stack.Group> : null}
+    { mainMenu === 1 || (mainMenu === 0 && acessoEstoque && !acessoRecebimento && !acessoExpedicao) ? <Stack.Group>
         <Stack.Screen
             name="TopTabs"
             component={TopTabs}
@@ -103,7 +106,25 @@ const StackNavigator = ({ navigation, mainMenu, setOpenProfile }) => {
             component={TransferenciaRProvider}
             options={{
                 headerShown: false,
-                title: 'Transferência',
+                title: 'Transferência EAN',
+            }}
+            />
+
+            <Stack.Screen
+            name="TransferenciaLote"
+            component={TransferenciaLoteRProvider}
+            options={{
+                headerShown: false,
+                title: 'Transferência de Lote',
+            }}
+            />
+
+            <Stack.Screen
+            name="Reimpressao"
+            component={ReimpressaoRProvider}
+            options={{
+                headerShown: false,
+                title: 'Reimpressão',
             }}
             />
 
@@ -124,7 +145,26 @@ const StackNavigator = ({ navigation, mainMenu, setOpenProfile }) => {
                 title: 'Consultra de Endereço',
             }}
             />
-    </Stack.Group>}
+            </Stack.Group> : null}
+            { mainMenu === 2 || (mainMenu === 0 && acessoExpedicao && !acessoEstoque && !acessoRecebimento) ? <Stack.Group>
+                <Stack.Screen
+                    name="TopTabs"
+                    component={TopTabs}
+                    options={{
+                        title: 'Expedição',
+                    }}
+                    initialParams={{ mainMenu, bottomTab: 'Expedicao' }}
+                    />
+        
+                    <Stack.Screen
+                    name="Separacao"
+                    component={SeparacaoRProvider}
+                    options={{
+                        headerShown: false,
+                        title: 'Separação',
+                    }}
+                    />
+            </Stack.Group> : null}
   
 </Stack.Navigator>;
 }
