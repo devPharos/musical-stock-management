@@ -60,8 +60,10 @@ export default function Transferencia({ navigation }) {
       })
       .catch((error) => {
         if (error) {
-          if(error.message.includes('401')) {
+          if(error.message?.includes('401')) {
             refreshAuthentication();
+            setLoading(false)
+            return;
           }
           setLoading(false)
           Alert.alert('Atenção!','Endereço de origem não encontrado')
@@ -92,8 +94,10 @@ export default function Transferencia({ navigation }) {
       })
       .catch((error) => {
         if (error) {
-          if(error.message.includes('401')) {
+          if(error.message?.includes('401')) {
             refreshAuthentication();
+            setLoading(false)
+            return;
           }
           setOpenProductScanner(false)
           Alert.alert('Atenção!','Produto não encontrado')
@@ -117,8 +121,10 @@ export default function Transferencia({ navigation }) {
       })
       .catch((error) => {
         if (error) {
-          if(error.message.includes('401')) {
+          if(error.message?.includes('401')) {
             refreshAuthentication();
+            setLoading(false)
+            return;
           }
           Alert.alert('Atenção!','Endereço de destino não encontrado')
           setLoading(false)
@@ -141,8 +147,10 @@ export default function Transferencia({ navigation }) {
           })
       .catch((error) => {
         if (error) {
-          if(error.message.includes('401')) {
+          if(error.message?.includes('401')) {
             refreshAuthentication();
+            setLoading(false)
+            return;
           }
           Alert.alert('Atenção!','Produto não encontrado')
           setLoading(false)
@@ -189,6 +197,9 @@ export default function Transferencia({ navigation }) {
           }
         ])
       }).catch(err => {
+        if(err.message?.includes('401')) {
+          refreshAuthentication();
+        }
         setLoading(false)
       })
   }

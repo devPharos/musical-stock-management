@@ -29,7 +29,7 @@ export default function Embarques({ navigation }) {
       .catch((error) => {
         if (error) {
           console.warn(error.message)
-          if(error.message.includes('401')) {
+          if(error.message?.includes('401')) {
             refreshAuthentication();
           }
           setLoading(false)

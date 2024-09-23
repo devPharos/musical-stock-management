@@ -30,7 +30,7 @@ export default function Login({ navigation }) {
   const [credentialsError, setCredentialsError] = useState(false)
   const [passwordVisibility, setPasswordVisibility] = useState(false)
   const [loading, setLoading] = useState(false)
-  const { user, setUser, APP_VERSION, ambiente, setAmbiente, baseURL, setBaseURL } = useUser()
+  const { setUser, APP_VERSION, ambiente, setAmbiente, baseURL, setBaseURL } = useUser()
 
   const logInFormSchema = Yup.object().shape({
       username: Yup.string().required('Digite seu usuário.'),
@@ -43,8 +43,8 @@ export default function Login({ navigation }) {
     setBaseURL(varAmbiente === 'producao' ? API_URL : API_TST_URL);
   }
 
-  const { control,handleSubmit,formState: { errors } } = useForm({ values: { username: 'pharos', password: 'Phr@2023'}, resolver: yupResolver(logInFormSchema) });
-  // const { control,handleSubmit,formState: { errors } } = useForm({ values: { username: '', password: ''}, resolver: yupResolver(logInFormSchema) });
+  // const { control,handleSubmit,formState: { errors } } = useForm({ values: { username: 'pharos', password: 'Phr@2023'}, resolver: yupResolver(logInFormSchema) });
+  const { control,handleSubmit,formState: { errors } } = useForm({ values: { username: '', password: ''}, resolver: yupResolver(logInFormSchema) });
 
   const handleLogin = async ({ username, password }) => {
     try {

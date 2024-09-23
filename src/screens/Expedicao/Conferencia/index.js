@@ -16,7 +16,7 @@ import { useEffect, useRef, useState } from 'react'
 import Scanner from '../../../components/scanner'
 import axios from 'axios'
 import { useUser } from '../../../hooks/user'
-export default function Separacao({ navigation, search = '' }) {
+export default function Conferencia({ navigation, search = '' }) {
   const [ordens, setOrdens] = useState(null)
   const [ordem, setOrdem] = useState(null)
   const [find, setFind] = useState(null)
@@ -31,7 +31,7 @@ export default function Separacao({ navigation, search = '' }) {
   useEffect(() => {
     async function getOrdensDeSeparacao() {
       setLoading(true)
-      await axios.get(`/wSeparacao`)
+      await axios.get(`/wConferencia`)
       .then(({ data }) => {
         if(data.RESULTADOS) {
           setOrdens(data.RESULTADOS)
@@ -44,7 +44,7 @@ export default function Separacao({ navigation, search = '' }) {
           setLoading(false)
           return;
         }
-        setLoading(false)
+        console.log(err)
       })
     }
     getOrdensDeSeparacao()
@@ -67,7 +67,6 @@ export default function Separacao({ navigation, search = '' }) {
           }
         }
       ])
-      setLoading(false)
     }
   },[ordem])
 
@@ -124,24 +123,24 @@ export default function Separacao({ navigation, search = '' }) {
           }
         }
       ])
-      setLoading(false)
       return
     } else {
-      setLoading(false)
       setFind({...find, searchEndereco: false, searchItem: true})
       setSearchEndereco(false)
+      setTimeout(() => {
+        setLoading(false)
+        qtdRef.current.focus()
+      }, 1000)
     }
   }
 
   function onFoundFila(code) {
-    setLoading(true)
+    // setLoading(true)
     setSearchFila(false)
     if(ordem.FILAS) {
       setOrdem({...ordem, FILAS: [...ordem.FILAS.filter(fila => fila !== code), code]})
-      setLoading(false)
     } else {
       setOrdem({...ordem, FILAS: [code]})
-      setLoading(false)
     }
   }
 
@@ -166,11 +165,10 @@ export default function Separacao({ navigation, search = '' }) {
         .post(`/wSeparacao`, body)
         .then(({ data }) => {
           if(data.Status === 201) {
-            let alterado = false;
+
             const newOrderItems = ordem.ITENS.map(item => {
-              if(!alterado && item.PRODUTO.CODIGO === find.item.PRODUTO.CODIGO && item.ITEM === find.item.ITEM) {
-                if(item.SALDO === parseInt(find.QTDE)) {
-                  alterado = true;
+              if(item.PRODUTO.CODIGO === find.item.PRODUTO.CODIGO && item.ITEM === find.item.ITEM) {
+                if(item.SALDO >= parseInt(find.QTDE)) {
                   item.SALDO = parseInt(item.SALDO) - parseInt(find.QTDE)
                 }
               }
@@ -190,12 +188,11 @@ export default function Separacao({ navigation, search = '' }) {
               {
                 text: 'Ok',
                 onPress: () => {
-                  let alterado = false;
+
                   const newOrderItems = ordem.ITENS.map(item => {
-                    if(!alterado && item.PRODUTO.CODIGO === find.item.PRODUTO.CODIGO && item.ITEM === find.item.ITEM) {
-                      if(item.SALDO === parseInt(find.QTDE)) {
-                        item.SALDO = parseInt(item.SALDO) - parseInt(find.QTDE);
-                        alterado = true;
+                    if(item.PRODUTO.CODIGO === find.item.PRODUTO.CODIGO && item.ITEM === find.item.ITEM) {
+                      if(item.SALDO >= parseInt(find.QTDE)) {
+                        item.SALDO = parseInt(item.SALDO) - parseInt(find.QTDE)
                       }
                     }
                     return item;
@@ -227,14 +224,6 @@ export default function Separacao({ navigation, search = '' }) {
             setLoading(false)
             return;
           }
-          Alert.alert("Atenção!",err.message, [
-            {
-              text: 'Ok',
-              onPress: () => {
-                setLoading(false)
-              }
-            }
-          ]);
         })
   }
 
@@ -261,7 +250,6 @@ export default function Separacao({ navigation, search = '' }) {
         setLoading(false)
         return;
       }
-      console.log(err)
     })
   }
 
@@ -351,7 +339,6 @@ export default function Separacao({ navigation, search = '' }) {
                 <View style={{ flexDirection: 'column', flex: 1 }}>
                   <Text style={{ fontSize: 16, fontWeight: 'bold' }}>{item.ARMAZEM} - {item.ENDERECO}</Text>
                   <Text style={{ fontSize: 12 }}>Partnumber: <Text style={{ fontWeight: 'bold' }}>{item.PRODUTO.PARTNUMBER}</Text></Text>
-                  <Text style={{ fontSize: 12 }}>Código ME: <Text style={{ fontWeight: 'bold' }}>{item.PRODUTO.CODIGO}</Text></Text>
                 </View>
 
                 {item.SALDO === 0 ? 

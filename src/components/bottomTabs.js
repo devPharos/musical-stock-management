@@ -1,15 +1,14 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import Icon from 'react-native-vector-icons/Ionicons'
 import { colors } from '../styles/colors'
-import { Platform, StyleSheet } from 'react-native'
 import { useUser } from '../hooks/user'
 import Rotina from '../screens/Rotina'
+import { useEffect } from 'react'
+import { Alert } from 'react-native'
 
 const Tab = createBottomTabNavigator()
-const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 50 : 15
-const APPBAR_HEIGHT = Platform.OS === 'ios' ? 44 : 56
 
-export default function BottomTabs() {
+export default function BottomTabs({ navigation }) {
   const { user } = useUser()
   const acessoRecebimento = user.menus.findIndex(menu => menu.CODIGO === '100') > -1
   const acessoEstoque = user.menus.findIndex(menu => menu.CODIGO === '200') > -1
@@ -22,6 +21,32 @@ export default function BottomTabs() {
   } else if(acessoExpedicao) {
     initialRoute = 'Expedicao'
   }
+
+  useEffect(
+    () =>
+      navigation.addListener('beforeRemove', (e) => {
+
+        // Prevent default behavior of leaving the screen
+        e.preventDefault();
+
+        // Prompt the user before leaving the screen
+        Alert.alert(
+          'Deseja realmente sair?',
+          'Você tem certeza que deseja voltar para a tela de login?',
+          [
+            { text: "Não sair", style: 'cancel', onPress: () => {} },
+            {
+              text: 'Sair',
+              style: 'destructive',
+              // If the user confirmed, then we dispatch the action we blocked earlier
+              // This will continue the action that had triggered the removal of the screen
+              onPress: () => navigation.dispatch(e.data.action),
+            },
+          ]
+        );
+      }),
+    [navigation]
+  );
 
   return (
     <>

@@ -27,7 +27,6 @@ import {
       axios
         .get(`/wBuscaEnd?Armazem=${find.substr(0,2)}&Endereco=${find.substr(2)}`)
         .then(({ data }) => {
-          console.log(data.PRODUTOS)
           setLoading(false)
   
           if(data.PRODUTOS.length > 0) {

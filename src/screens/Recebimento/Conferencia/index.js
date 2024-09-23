@@ -15,7 +15,7 @@ import axios from 'axios'
 import { useRecebimento } from '../../../hooks/recebimento'
 
 export default function Recebimento({ navigation }) {
-  const { selectedInvoices, setSelectedInvoices, setInvoiceItems } = useRecebimento()
+  const { selectedInvoices, setSelectedInvoices, setInvoiceItems, invoiceItems } = useRecebimento()
   const [loading, setLoading] = useState(true)
 
   const [invoices, setInvoices] = useState([]);
@@ -38,7 +38,18 @@ export default function Recebimento({ navigation }) {
   }, [])
 
   function iniciarRecebimento() {
-    // setInvoiceItems()
+
+    invoiceItems.map((inv) => {
+      return inv.map((item) => {
+        if(item.order) {
+          console.log(item.order, 0)
+          item.order = 0;
+          item.qtdScan = 0;
+          item.qtdEmb = 0;
+        }
+        return item
+      })
+    })
     navigation.navigate('Items')
   }
 

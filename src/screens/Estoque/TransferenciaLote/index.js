@@ -50,7 +50,7 @@ export default function Transferencia({ navigation }) {
       })
       .catch((error) => {
         if (error) {
-          if(error.message.includes('401')) {
+          if(error.message?.includes('401')) {
             refreshAuthentication();
           }
           setLoading(false)
@@ -65,8 +65,6 @@ export default function Transferencia({ navigation }) {
       .get(`/wBuscaEtiq?Etiqueta=${code}`)
       .then((response) => {
         const data = response.data
-
-        console.log(data)
 
         if(transfer.PRODUTOS.find(p => p.ETIQUETA.trim() === code.trim())) {
           Alert.alert('Atenção!','Produto já na listagem a endereçar.', [
@@ -105,8 +103,10 @@ export default function Transferencia({ navigation }) {
       })
       .catch((error) => {
         if (error) {
-          if(error.message.includes('401')) {
+          if(error.message?.includes('401')) {
             refreshAuthentication();
+            setLoading(false)
+            return;
           }
           setOpenProductScanner(false)
           Alert.alert('Atenção!','Produto não encontrado')
@@ -131,7 +131,7 @@ export default function Transferencia({ navigation }) {
       })
       .catch((error) => {
         if (error) {
-          if(error.message.includes('401')) {
+          if(error.message?.includes('401')) {
             refreshAuthentication();
           }
           Alert.alert('Atenção!','Endereço de destino não encontrado')
@@ -155,7 +155,7 @@ export default function Transferencia({ navigation }) {
           })
       .catch((error) => {
         if (error) {
-          if(error.message.includes('401')) {
+          if(error.message?.includes('401')) {
             refreshAuthentication();
           }
           Alert.alert('Atenção!','Produto não encontrado')

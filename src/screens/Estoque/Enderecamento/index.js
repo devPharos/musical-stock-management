@@ -17,12 +17,14 @@ import { useState } from 'react'
 import Icon from 'react-native-vector-icons/Ionicons'
 import { useNavigation } from '@react-navigation/native'
 import { useEnderecamento } from '../../../hooks/enderecamento'
+import { useUser } from '../../../hooks/user'
 
 export default function Enderecamento() {
   const { setAddressing, addressing } = useEnderecamento()
   const [openProductScanner, setOpenProductScanner] = useState(false)
   const [openAddressingScanner, setOpenAddressingScanner] = useState(false)
   const [loading, setLoading] = useState(false)
+  const { refreshAuthentication } = useUser()
 
   const navigation =
     useNavigation()
@@ -59,14 +61,20 @@ export default function Enderecamento() {
         setOpenProductScanner(false)
         setLoading(false)
       })
+      .catch((error) => {
+        if (error) {
+          if(error.message?.includes('401')) {
+            refreshAuthentication();
+          }
+          setLoading(false)
+        }
+      })
   }
 
   const onCodeAddressingScanned = (code) => {
     setLoading(true)
     const Armazem = code.substring(0, 2)
     const Endereco = code.substring(2)
-
-    console.log(Armazem, Endereco)
 
     axios
       .get(`/wBuscaEnd?Armazem=${Armazem}&Endereco=${Endereco}`)
@@ -131,10 +139,9 @@ export default function Enderecamento() {
       armazem: addressing.ARMAZEM,
       endereco: addressing.ENDERECO,
     }
-    // console.log(body)
     axios
       .post(`/wEnderecar`, body)
-      .then(() => {
+      .then((response) => {
         setLoading(false)
         Alert.alert('Atenção!',response.data.Message, [
           {

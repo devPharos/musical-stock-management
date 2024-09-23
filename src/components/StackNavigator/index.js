@@ -10,14 +10,16 @@ import { colors } from '../../styles/colors';
 import ConfigButton from '../Header/ConfigButton';
 import EnderecamentoRProvider from '../../screens/Estoque/Enderecamento/Provider';
 import TransferenciaRProvider from '../../screens/Estoque/TransferenciaEAN/Provider';
-import ConsultaProdutoProvider from '../../screens/Estoque/ConsultaProduto/Provider';
-import ConsultaEnderecoProvider from '../../screens/Estoque/ConsultaEndereco/Provider';
 import LoteNumseqRootProvider from '../../screens/Recebimento/LoteNumseq/Provider';
-import { Text, TouchableOpacity } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import ReimpressaoRProvider from '../../screens/Estoque/Reimpressao/Provider';
 import SeparacaoRProvider from '../../screens/Expedicao/Separacao/Provider';
 import TransferenciaLoteRProvider from '../../screens/Estoque/TransferenciaLote/Provider';
 import RecebimentoRootProvider from '../../screens/Recebimento/Conferencia/Provider';
+import DivisaoEtiquetasRProvider from '../../screens/Estoque/DivisaoEtiquetas/Provider';
+import AjusteProdutoRProvider from '../../screens/Recebimento/AjusteProduto/Provider';
+import CriaEnderecoRProvider from '../../screens/Estoque/CriaEndereco/Provider';
+import ConferenciaRProvider from '../../screens/Expedicao/Conferencia/Provider';
 
 const Stack = createNativeStackNavigator()
 
@@ -32,7 +34,7 @@ const StackNavigator = ({ navigation, mainMenu, acessoRecebimento, acessoEstoque
     headerRight: () => (
       <>
         {/* <ProfileButton setOpenProfile={setOpenProfile} /> */}
-        <ConfigButton />
+        <ConfigButton navigation={navigation} />
         <TouchableOpacity onPress={() => navigation.push('Login')} style={{margin: 8, padding: 8 }}>
             <Icon name="exit-outline" size={24} color={colors['gray-500']} />
         </TouchableOpacity>
@@ -48,39 +50,47 @@ const StackNavigator = ({ navigation, mainMenu, acessoRecebimento, acessoEstoque
         title: 'Recebimento',
         }}
         initialParams={{ mainMenu, bottomTab: 'Recebimento' }}
-    />
-    <Stack.Screen
+        />
+        <Stack.Screen
+        name="AjusteProduto"
+        component={AjusteProdutoRProvider}
+        options={{
+        headerShown: false,
+        title: 'Ajuste de Produto',
+        }}
+        />
+        <Stack.Screen
         name="RecebimentoConferencia"
         component={RecebimentoRootProvider}
         options={{
         headerShown: false,
         title: 'Recebimento',
         }}
-    />
-    <Stack.Screen
+        />
+        <Stack.Screen
         name="Ibanez"
         component={IbanezRootProvider}
         options={{
         headerShown: false,
         title: 'Inspeção Ibanez',
         }}
-    />
-    <Stack.Screen
+        />
+        <Stack.Screen
         name="LoteNumseq"
         component={LoteNumseqRootProvider}
         options={{
         headerShown: false,
         title: 'Lote x Núm. Seq.',
         }}
-    />
-    <Stack.Screen
+        />
+        <Stack.Screen
         name="Embarques"
         component={EmbarquesRootProvider}
         options={{
         headerShown: false,
         title: 'Embarques Futuros',
         }}
-    />
+        />
     </Stack.Group> : null}
     { mainMenu === 1 || (mainMenu === 0 && acessoEstoque && !acessoRecebimento && !acessoExpedicao) ? <Stack.Group>
         <Stack.Screen
@@ -129,6 +139,25 @@ const StackNavigator = ({ navigation, mainMenu, acessoRecebimento, acessoEstoque
             />
 
             <Stack.Screen
+            name="DivisaoEtiquetas"
+            component={DivisaoEtiquetasRProvider}
+            options={{
+                headerShown: false,
+                title: 'Divisão de Etiquetas',
+            }}
+            />
+            <Stack.Screen
+            name="CriaEndereco"
+            component={CriaEnderecoRProvider}
+            options={{
+                headerShown: false,
+                title: 'Criação de Endereço',
+            }}
+            />
+
+
+
+            {/* <Stack.Screen
             name="ConsultaProdutoProvider"
             component={ConsultaProdutoProvider}
             options={{
@@ -144,7 +173,7 @@ const StackNavigator = ({ navigation, mainMenu, acessoRecebimento, acessoEstoque
                 headerShown: false,
                 title: 'Consultra de Endereço',
             }}
-            />
+            /> */}
             </Stack.Group> : null}
             { mainMenu === 2 || (mainMenu === 0 && acessoExpedicao && !acessoEstoque && !acessoRecebimento) ? <Stack.Group>
                 <Stack.Screen
@@ -162,6 +191,14 @@ const StackNavigator = ({ navigation, mainMenu, acessoRecebimento, acessoEstoque
                     options={{
                         headerShown: false,
                         title: 'Separação',
+                    }}
+                    />
+                    <Stack.Screen
+                    name="Conferencia"
+                    component={ConferenciaRProvider}
+                    options={{
+                        headerShown: false,
+                        title: 'Conferência',
                     }}
                     />
             </Stack.Group> : null}

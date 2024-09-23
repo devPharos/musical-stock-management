@@ -50,7 +50,7 @@ export function ItemsCard({ itemData }) {
           <Text style={styles.itemNFQtdLabel}>Código ME: {itemData.codigo}</Text>
           <Text style={styles.itemNFQtdLabel}>Partnumber: {itemData.partnumber}</Text>
         </View>
-        <View style={styles.itemContent}>
+        <View style={[styles.itemContent,{flexDirection: 'column', width: 60}]}>
           { itemData.qtdScan && itemData.qtdScan.toString() === itemData.quantidade.toString() ?
             <View style={{ backgroundColor: colors['green-300'], paddingHorizontal: 8, paddingVertical: 8, borderRadius: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}}>
               <Text style={{ color: "#222", fontWeight: 'bold' }}>{itemData.qtdScan}</Text>
@@ -64,6 +64,9 @@ export function ItemsCard({ itemData }) {
               <Text style={{ color: "#aaa", fontWeight: 'bold' }}>{itemData.quantidade}</Text>
             </View>
           }
+          {itemData.saldo === 0 && <View style={{ backgroundColor: "#a00", width: 60, borderWidth: 1, borderColor: '#efefef', paddingHorizontal: 4, paddingVertical: 4, borderRadius: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 2 }}>
+            <Text style={{ color: "#fff", fontSize: 8, fontWeight: 'bold' }}>Sem estoque</Text>
+          </View>}
         </View>
       </View>
     </TouchableOpacity>

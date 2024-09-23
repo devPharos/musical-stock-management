@@ -11,12 +11,14 @@ import {
     Image,
     ActivityIndicator,
     TouchableOpacity,
+    Alert,
   } from 'react-native'
   import Icon from 'react-native-vector-icons/Ionicons'
   import { colors } from '../../../styles/colors'
   import { useEffect, useRef, useState } from 'react'
   import Scanner from '../../../components/scanner'
   import axios from 'axios'
+import { useUser } from '../../../hooks/user'
   export default function ConsultaProduto({ search = '', setSearch = () => null }) {
   
     const [ product, setProduct ] = useState(null)
@@ -24,24 +26,41 @@ import {
     const [loading, setLoading] = useState(false)
     const [opennedArmazem, setOpennedArmazem] = useState(null)
     const drawer = useRef(null);
+    const { refreshAuthentication } = useUser()
   
     function getProductData(find) {
-      setLoading(true)
-      axios
-        .get(`/wBuscaProd?Produto=${find}`)
-        .then(({ data }) => {
-          setLoading(false)
-  
-          if(data.PRODUTOS.length > 0) {
-            setProduct(data)
-            setOpenProductScanner(false)
-            drawer.current.openDrawer()
-          } else {
-            setProduct(null)
-          }
-        }).catch(err => {
-          setLoading(false)
-        })
+      if(!loading) {
+        setLoading(true)
+        axios
+          .get(`/wBuscaProd?Produto=${find}`)
+          .then(({ data }) => {
+            setLoading(false)
+    
+            if(data.PRODUTOS.length > 0) {
+              setProduct(data)
+              setOpenProductScanner(false)
+              drawer.current.openDrawer()
+            } else {
+              setProduct(null)
+            }
+          }).catch(err => {
+            if(err.message?.includes('401')) {
+              refreshAuthentication();
+              return;
+            }
+            Alert.alert('Erro', 'Não foi possível obter os dados do produto, verifique o cadastro dele.',
+              [
+                {
+                  text: 'Ok',
+                  onPress: () => {
+                    setLoading(false);
+                    setOpenProductScanner(false)
+                  },
+                },
+              ],
+            )
+          })
+      }
     }
 
     useEffect(() => {
@@ -79,6 +98,19 @@ import {
               <Text style={{ textAlign: 'center', color: "#111" }}>Código: <Text style={{ fontWeight: 'bold' }}>{product.PRODUTOS[0].CODIGO}</Text></Text>
               <Text style={{ textAlign: 'center', color: "#111" }}>NCM: <Text style={{ fontWeight: 'bold' }}>{product.PRODUTOS[0].NCM}</Text></Text>
             </View>
+
+            { product.PRODUTOS[0].AENDERECAR.length > 0 ?
+            <View style={{ marginVertical: 12, borderStyle: 'dashed', borderTopWidth: 1, borderColor: "#ccc", paddingVertical: 12 }}>
+            <Text>Saldos a Endereçar:</Text>
+            {product.PRODUTOS[0].AENDERECAR.map((enderecar,index) => {
+              return <View key={index} style={{ backgroundColor: '#efefef', borderBottomWidth: 1, borderColor: '#ccc', paddingHorizontal: 8, width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8, borderTopWidth: 1}}>
+                <Text style={{ fontWeight: 'bold' }}>Armazém: {enderecar.ARMAZEM}</Text>
+                <Text style={{ fontWeight: 'bold' }}>-</Text>
+                <Text style={{ fontWeight: 'bold' }}>{enderecar.SALDO} unidade(s)</Text>
+              </View>}
+            )}
+            </View>
+            : null }
   
             { product.PRODUTOS[0].SALDOS.length === 0 ?
             <View style={{ marginVertical: 12, borderStyle: 'dashed', borderTopWidth: 1, borderColor: "#ccc", paddingVertical: 12 }}>
@@ -124,10 +156,22 @@ import {
                       <Text style={{ width: '28%',textAlign: 'right' }}>Empen.</Text>
                     </View>
                     {saldo.ENDERECOS.map((endereco,index) => {
-                    return <View key={index} style={{ padding: 4,flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',backgroundColor: index % 2 != 0 ? "#EFEFEF" : 'transparent' }}>
+                    return <View style={{ borderBottomWidth: 1, borderColor: '#ccc' }}>
+                      <View key={index} style={{ padding: 4,flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',backgroundColor: index % 2 != 0 ? "#EFEFEF" : 'transparent' }}>
                       <Text style={{ width: '44%' }}>{endereco.DESCRICAO} </Text>
                       <Text style={{ width: '28%',textAlign: 'right' }}>{endereco.QUANTIDADE}</Text>
                       <Text style={{ width: '28%',textAlign: 'right' }}>{endereco.EMPENHO}</Text>
+                      
+                    </View>
+
+                    {endereco.LOTES.length > 0 && endereco.LOTES[0].LOTE && endereco.LOTES.map((lote,index) => {
+                    return <View key={index} style={{ padding: 4,flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',backgroundColor: index % 2 != 0 ? "#EFEFEF" : 'transparent' }}>
+                      <Text style={{ width: '44%' }}> --- {lote.LOTE} </Text>
+                      <Text style={{ width: '28%',textAlign: 'right' }}>{lote.QUANTIDADE}</Text>
+                      <Text style={{ width: '28%',textAlign: 'right' }}>{lote.EMPENHO}</Text>
+                    </View>
+                    }
+                    )}
                     </View>
                     }
                     )}

@@ -147,12 +147,6 @@ export default function Ibanez({ navigation }) {
     // setLoading(false);
   };
 
-  useEffect(() => {
-    if(selectedPendente) {
-      console.log(selectedPendente.ARMAZEMDEST)
-    }
-  },[selectedPendente])
-
   function handleMotivo(index) {
     const motivosSelecionados = [...selectedPendente.MOTIVO];
     const novoMotivoSelecionado = motivos[index].CHAVE.trim();
@@ -213,8 +207,6 @@ export default function Ibanez({ navigation }) {
       PecasPN: selectedPendente.PECASPARTNUMBERS || ''
     }
 
-    console.log(selectedPendente)
-
     setLoading(false)
 
     try {
@@ -231,7 +223,11 @@ export default function Ibanez({ navigation }) {
             setLoading(false)
           }
         }).catch((error) => {
-          console.log(body, error)
+          if(error.message?.includes('401')) {
+            refreshAuthentication();
+            setLoading(false)
+            return;
+          }
           Alert.alert('Atenção!', error.message)
         })
     } catch (err) {
@@ -256,10 +252,11 @@ export default function Ibanez({ navigation }) {
         })
         .catch((error) => {
           if (error) {
-            if (error.message?.includes('401')) {
+            if(error.message?.includes('401')) {
               refreshAuthentication();
+              setLoading(false)
+              return;
             }
-            setLoading(false)
           }
         })
     }

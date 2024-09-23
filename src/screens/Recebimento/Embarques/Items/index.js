@@ -26,7 +26,7 @@ export function Items({ navigation }) {
   const [openCameraReader, setOpenCameraReader] = useState(false);
   const [loading, setLoading] = useState(false)
   const { selectedInvoices, invoiceItems, handleModifySelectedInvoices } = useRecebimento()
-  const { selectedPrinter } = useUser()
+  const { selectedPrinter, refreshAuthentication } = useUser()
   const [allItemsWereConferred, setAllItemsWereConferred] = useState(false)
   const [printerNotSelected, setPrinterNotSelected] = useState(false)
   const [openQuantityInform, setOpenQuantityInform] = useState(null)
@@ -118,8 +118,11 @@ export function Items({ navigation }) {
         })
         .catch((error) => {
           if (error) {
-            console.warn(error)
+            if(error.message?.includes('401')) {
+              refreshAuthentication();
+            }
           }
+          setLoading(false)
         })
     }
   }

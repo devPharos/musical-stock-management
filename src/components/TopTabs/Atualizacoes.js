@@ -15,6 +15,14 @@ export default function Atualizacoes({ navigation, route }) {
     >
       { bottomTab === 'Recebimento' &&
       <ScrollView style={{ height: '100%' }}>
+        {user.menus[mainMenu].SUBMENU.findIndex(menu => menu.CODIGO === '104') > -1 &&
+        <CustomButton
+          label="Ajuste de Produto"
+          detail="Altere EAN, peso, medidas e outros dados do produto."
+          navigatePath="AjusteProduto"
+          navigation={navigation}
+          type="secondary"
+        />}
         {user.menus[mainMenu].SUBMENU.findIndex(menu => menu.CODIGO === '101') > -1 &&
         <CustomButton
           label="Recebimento"
@@ -75,6 +83,22 @@ export default function Atualizacoes({ navigation, route }) {
           navigation={navigation}
           type="secondary"
         />}
+        {user.menus[mainMenu].SUBMENU.findIndex(menu => menu.CODIGO === '205') > -1 &&
+        <CustomButton
+          label="Divisão de Etiquetas"
+          detail="Rotina de divisão de etiquetas."
+          navigatePath="DivisaoEtiquetas"
+          navigation={navigation}
+          type="secondary"
+        />}
+        {user.menus[mainMenu].SUBMENU.findIndex(menu => menu.CODIGO === '206') > -1 &&
+        <CustomButton
+          label="Criar Endereço"
+          detail="Rotina de criação de novos endereços."
+          navigatePath="CriaEndereco"
+          navigation={navigation}
+          type="secondary"
+        />}
       </ScrollView>}
       
       { bottomTab === 'Expedicao' &&
@@ -87,7 +111,16 @@ export default function Atualizacoes({ navigation, route }) {
           navigation={navigation}
           type="secondary"
         />}
-      </ScrollView>}
+
+        {user.menus[mainMenu].SUBMENU.findIndex(menu => menu.CODIGO === '302') > -1 &&
+        <CustomButton
+          label="Conferência de Pedidos"
+          detail="Processo de conferência de pedidos de vendas."
+          navigatePath="Conferencia"
+          navigation={navigation}
+          type="secondary"
+        />}
+        </ScrollView>}
     </ImageBackground>
   )
 }

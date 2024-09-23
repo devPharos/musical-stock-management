@@ -8,6 +8,8 @@ import { View, StyleSheet, Platform } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
 import { colors } from './src/styles/colors'
+import ConsultaProdutoProvider from './src/screens/Estoque/ConsultaProduto/Provider'
+import ConsultaEnderecoProvider from './src/screens/Estoque/ConsultaEndereco/Provider'
 
 const Stack = createNativeStackNavigator()
 const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 50 : 0
@@ -39,6 +41,22 @@ export default function App() {
             name="Printer"
             component={PrinterSelection}
             options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="ConsultaProdutoProvider"
+            component={ConsultaProdutoProvider}
+            options={{
+                headerShown: false,
+                title: 'Consultra de Produto',
+            }}
+          />
+          <Stack.Screen
+            name="ConsultaEnderecoProvider"
+            component={ConsultaEnderecoProvider}
+            options={{
+                headerShown: false,
+                title: 'Consultra de Endereço',
+            }}
           />
         </Stack.Navigator>
       </NavigationContainer>

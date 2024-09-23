@@ -20,14 +20,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     position: 'absolute',
-    bottom: 20,
-    right: 20,
+    bottom: 15,
+    right: 15,
   },
   button: {
     backgroundColor: colors['green-500'],
     borderRadius: 30,
-    width: 60,
-    height: 60,
+    width: 45,
+    height: 45,
     alignItems: 'center',
     justifyContent: 'center',
   },

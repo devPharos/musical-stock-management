@@ -163,8 +163,8 @@ export function Items({ navigation }) {
       invoiceItems.map((inv) => {
         return inv.map((item) => {
           if(item.qtdScan > 0 && !item.order) {
-            // item.order = 0;
             item.order = inv.filter(inv => inv.order).length + 1
+            console.log(item.order)
           }
           return item
         })
@@ -280,6 +280,7 @@ export function Items({ navigation }) {
                                   onBarcodeScanned={e => handleBarCodeScanned(e)}
                                   style={{ width: RFPercentage(45), height: RFPercentage(100) }}
                                   />
+                                  <TextInput style={{ position: 'absolute', top: 0, width: RFPercentage(45), backgroundColor: "#FFF", height: 48,fontSize: 18, borderWidth: 1, borderColor: "#ccc", textAlign: 'center' }} keyboardType='number-pad' onEndEditing={e => handleBarCodeScanned({ data: e.nativeEvent.text.toUpperCase()})} placeholder='Digite manualmente...' placeholderTextColor='#ccc' />
                               </View>
                           </View>
                       </ScrollView>
