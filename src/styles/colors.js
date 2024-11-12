@@ -11,6 +11,8 @@ export const colors = {
   'red-50': '#ffd9d9',
   'red-300': '#cb2431',
   'red-500': '#ff0000',
+  'yellow-300': '#c5cb24',
+  'yellow-500': '#fff200',
   'blue-300': '#249ccb',
   white: '#ffffff',
 }

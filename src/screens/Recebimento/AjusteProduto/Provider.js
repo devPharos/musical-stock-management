@@ -12,7 +12,7 @@ export default function AjusteProdutoRProvider({ navigation }) {
   return (
     <ReimpressaoProvider>
       <Stack.Navigator
-        initialRouteName="AjusteProduto"
+        initialRouteName="wAjusteProd"
         screenOptions={{
           headerBackTitleVisible: false,
           headerTintColor: colors['gray-500'],

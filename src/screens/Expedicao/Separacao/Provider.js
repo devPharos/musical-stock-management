@@ -12,7 +12,7 @@ export default function SeparacaoRProvider({ navigation }) {
   return (
     <SeparacaoProvider>
       <Stack.Navigator
-        initialRouteName="Separacao"
+        initialRouteName="wSeparacao"
         screenOptions={{
           headerBackTitleVisible: false,
           headerTintColor: colors['gray-500'],

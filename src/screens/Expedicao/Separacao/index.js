@@ -72,9 +72,16 @@ export default function Separacao({ navigation, search = '' }) {
   },[ordem])
 
   function onFound(code) {
+    setSearchItem(false)
     setLoading(true)
+    if(code.trim() === find.item.PRODUTO.CODIGOBARRAS.trim()) {
+      setFind({...find, searchItem: false})
+      setSearchItem(false)
+      setLoading(false)
+      return
+    }
     axios
-        .get(`/wBuscaProd?Produto=${code}&Saldo=NAO`)
+        .get(`/wBuscaProd2?Produto=${code}&Saldo=NAO`)
         .then(({ data }) => {
           if(data.Status === 400) {
             Alert.alert("Atenção!", data.Message, [
@@ -90,7 +97,7 @@ export default function Separacao({ navigation, search = '' }) {
           setLoading(false)
           if(data.PRODUTOS.length > 0) {
             const etiqueta = data.PRODUTOS[0];
-            if(etiqueta.CODIGO !== find.item.PRODUTO.CODIGO) {
+            if(code !== find.item.PRODUTO.CODIGO) {
               Alert.alert("Atenção!","Bipe a etiqueta do produto: "+find.item.PRODUTO.DESCRICAO, [
                 {
                   text: 'Ok',
@@ -114,6 +121,7 @@ export default function Separacao({ navigation, search = '' }) {
   }
 
   function onFoundEndereco(code) {
+    setSearchEndereco(false)
     setLoading(true)
     if(find.armazem.trim() !== code.substring(0, 2) || find.endereco.trim() !== code.trim().substring(2)) {
       Alert.alert("Atenção!","Endereço incorreto. Por favor, vá até o endereço: "+find.armazem+find.endereco, [
@@ -134,8 +142,12 @@ export default function Separacao({ navigation, search = '' }) {
   }
 
   function onFoundFila(code) {
-    setLoading(true)
+    const validRegex = /FC\d{4}/
+    if(!validRegex.test(code)) {
+      return;
+    }
     setSearchFila(false)
+    setLoading(true)
     if(ordem.FILAS) {
       setOrdem({...ordem, FILAS: [...ordem.FILAS.filter(fila => fila !== code), code]})
       setLoading(false)
@@ -299,10 +311,10 @@ export default function Separacao({ navigation, search = '' }) {
             </View>
           <FlatList
           data={ordens}
-          renderItem={({ item }) => (
-            <TouchableOpacity onPress={() => setOrdem({...item, RESTAM: item.ITENS.filter(item => item.SALDO > 0).length})} style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center', gap: 8, backgroundColor: "#FFF", paddingHorizontal: 16, paddingVertical: 8,elevation: 2,shadowColor: '#222',shadowOffset: { width: -2, height: 4 },shadowOpacity: 0.2,shadowRadius: 3}}>
+          renderItem={({ item }, index) => (
+            <TouchableOpacity key={index} onPress={() => setOrdem({...item, RESTAM: item.ITENS.filter(item => item.SALDO > 0).length})} style={{ flexDirection: 'row', marginBottom: 8, alignItems: 'center', gap: 8, backgroundColor: "#FFF", paddingHorizontal: 16, paddingVertical: 8,elevation: 2,shadowColor: '#222',shadowOffset: { width: -2, height: 4 },shadowOpacity: 0.2,shadowRadius: 3}}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <View style={{ borderRadius: 10, width: 20, height: 20, backgroundColor: item.STATUS === '0' ? colors['red-300'] : colors['green-300'] }}></View>
+                <View style={{ borderRadius: 10, width: 20, height: 20, backgroundColor: item.STATUS === '0' ? colors['green-300'] : colors['red-300'] }}></View>
                 <View style={{ flexDirection: 'column', flex: 1 }}>
                   <Text style={{ fontSize: 16 }}>{item.PEDIDO}</Text>
                   <Text style={{ fontSize: 13 }}>{item.RAZAOSOCIAL}</Text>
@@ -351,18 +363,26 @@ export default function Separacao({ navigation, search = '' }) {
                 <View style={{ flexDirection: 'column', flex: 1 }}>
                   <Text style={{ fontSize: 16, fontWeight: 'bold' }}>{item.ARMAZEM} - {item.ENDERECO}</Text>
                   <Text style={{ fontSize: 12 }}>Partnumber: <Text style={{ fontWeight: 'bold' }}>{item.PRODUTO.PARTNUMBER}</Text></Text>
+                  <Text style={{ fontSize: 12 }}>EAN: <Text style={{ fontWeight: 'bold' }}>{item.PRODUTO.CODIGOBARRAS}</Text></Text>
                   <Text style={{ fontSize: 12 }}>Código ME: <Text style={{ fontWeight: 'bold' }}>{item.PRODUTO.CODIGO}</Text></Text>
                 </View>
 
-                {item.SALDO === 0 ? 
-                <View style={{ backgroundColor: colors['green-300'], height: 42, width: 42, borderRadius: 21, paddingHorizontal: 8, flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-                  <Icon name="checkmark" size={20} color={colors['black']} />
-                </View>
+                {item.SALDO === 0 ? <>
+                  <View style={{ height: 42, paddingHorizontal: 8, borderRadius: 8, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', backgroundColor: '#efefef' }}>
+                    <Text style={{ fontSize: 10 }}>Quant.</Text>
+                    <Text style={{ fontSize: 16, fontWeight: 'bold' }}>{item.QUANTIDADE}</Text>
+                  </View>
+                  <View style={{ backgroundColor: colors['green-300'], height: 28, width: 28, borderRadius: 21, paddingHorizontal: 8, flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+                    <Icon name="checkmark" size={14} color={colors['black']} />
+                  </View>
+                </>
                 :
+                <>
                 <View style={{ height: 42, paddingHorizontal: 8, borderRadius: 8, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', backgroundColor: '#efefef' }}>
                   <Text style={{ fontSize: 10 }}>Quant.</Text>
                   <Text style={{ fontSize: 16, fontWeight: 'bold' }}>{item.SALDO}</Text>
                 </View>
+                </>
                 }
               </View>
             </View>

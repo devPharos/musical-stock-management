@@ -13,7 +13,7 @@ export default function DivisaoEtiquetasRProvider({ navigation }) {
   return (
     <ReimpressaoProvider>
       <Stack.Navigator
-        initialRouteName="DivisaoEtiquetas"
+        initialRouteName="wDivisaoEtiq"
         screenOptions={{
           headerBackTitleVisible: false,
           headerTintColor: colors['gray-500'],

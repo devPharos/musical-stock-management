@@ -32,7 +32,7 @@ export default function Enderecamento() {
   const onCodeProductScanned = (code) => {
     setLoading(true)
     axios
-      .get(`/wBuscaEtiq?Etiqueta=${code}`)
+      .get(`/wBuscaEtiq?Etiqueta=${code}&Saldo=SIM`)
       .then((response) => {
         const data = response.data
 

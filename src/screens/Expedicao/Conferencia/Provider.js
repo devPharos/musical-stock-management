@@ -12,7 +12,7 @@ export default function ConferenciaRProvider({ navigation }) {
   return (
     <ConferenciaProvider>
       <Stack.Navigator
-        initialRouteName="Conferencia"
+        initialRouteName="wConferencia"
         screenOptions={{
           headerBackTitleVisible: false,
           headerTintColor: colors['gray-500'],

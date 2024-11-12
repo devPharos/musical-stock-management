@@ -43,7 +43,7 @@ export default function App() {
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name="ConsultaProdutoProvider"
+            name="wBuscaProd"
             component={ConsultaProdutoProvider}
             options={{
                 headerShown: false,
@@ -51,7 +51,7 @@ export default function App() {
             }}
           />
           <Stack.Screen
-            name="ConsultaEnderecoProvider"
+            name="wBuscaEnd"
             component={ConsultaEnderecoProvider}
             options={{
                 headerShown: false,

@@ -53,7 +53,7 @@ export default function LoteNumseq({ navigation }) {
     setLoading(true);
 
     if(buscarPor === 'lote') {
-      await axios.get(`/wBuscaEtiq?Etiqueta=${data}`)
+      await axios.get(`/wBuscaEtiq?Etiqueta=${data}&Saldo=NAO`)
       .then((response) => {
           setSelectedLote({LOTE: response.data.CODIGO, ETIQUETA: response.data, NUMSERIES: []})
       })

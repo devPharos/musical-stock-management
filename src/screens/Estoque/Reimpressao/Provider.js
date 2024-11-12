@@ -12,7 +12,7 @@ export default function ReimpressaoRProvider({ navigation }) {
   return (
     <ReimpressaoProvider>
       <Stack.Navigator
-        initialRouteName="Reimpressao"
+        initialRouteName="wReimpressao"
         screenOptions={{
           headerBackTitleVisible: false,
           headerTintColor: colors['gray-500'],

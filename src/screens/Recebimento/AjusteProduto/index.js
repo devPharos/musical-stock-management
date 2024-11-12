@@ -23,14 +23,14 @@ export default function AjusteProduto({ navigation, search = '', setSearch = () 
   const [ product, setProduct ] = useState(null)
   const [openProductScanner, setOpenProductScanner] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [opennedArmazem, setOpennedArmazem] = useState(null)
+  const [searchBarcode, setSearchBarcode] = useState(false)
   const drawer = useRef(null);
 
   function getProductData(find) {
     if(!loading) {
     setLoading(true)
     axios
-      .get(`/wBuscaProd?Produto=${find}&Saldo=NAO`)
+      .get(`/wBuscaProd2?Produto=${find}&Saldo=NAO`)
       .then(({ data }) => {
         setLoading(false)
 
@@ -44,6 +44,7 @@ export default function AjusteProduto({ navigation, search = '', setSearch = () 
           setProduct(null)
         }
       }).catch(err => {
+        
         Alert.alert('Erro', 'Não foi possível obter os dados do produto, verifique o cadastro dele.',
           [
             {
@@ -66,6 +67,7 @@ export default function AjusteProduto({ navigation, search = '', setSearch = () 
   },[search])
 
   const onCodeProductScanned = (code) => {
+    setOpenProductScanner(false)
     getProductData(code)
   }
 
@@ -115,10 +117,22 @@ export default function AjusteProduto({ navigation, search = '', setSearch = () 
     ])
   }
 
+  function onFoundBarcode(code) {
+    setSearchBarcode(false)
+    setLoading(false)
+    setAjuste({...ajuste, CODIGOBARRAS: code})
+  }
+
   const navigationView = () => (
     <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'center', padding: 16 }}>
       {product &&
       <>
+
+      {searchBarcode ? (
+        <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8 }}>
+          <Scanner loading={loading} setLoading={setLoading} over={true} handleCodeScanned={onFoundBarcode} handleClose={() => setSearchBarcode(false)} />
+          </View>
+      ) : (
         <ScrollView style={{ width: '100%' }}>
           
           <View style={{ flex: 1, position: 'relative' }}>
@@ -152,9 +166,10 @@ export default function AjusteProduto({ navigation, search = '', setSearch = () 
                   keyboardType='numeric'
                   placeholder={'Código Barras'}
                   value={ajuste.CODIGOBARRAS ? ajuste.CODIGOBARRAS : ''}
-                  style={[styles.input,{ textAlign: 'right', paddingRight: 16, color: colors['green-300'], fontSize: 16 }]}
+                  style={[styles.input,{ textAlign: 'right', paddingRight: 4, color: colors['green-300'], fontSize: 16 }]}
                   onChangeText={val => setAjuste({...ajuste, CODIGOBARRAS: val})}
                 />
+                <TouchableOpacity onPress={() => setSearchBarcode(true)}><Icon name="barcode" size={20} color={colors['green-300']} /></TouchableOpacity>
               </View>
             </View>
 
@@ -251,6 +266,7 @@ export default function AjusteProduto({ navigation, search = '', setSearch = () 
           </View>
 
         </ScrollView>
+      )}
       </>}
     </View>
   );

@@ -29,7 +29,7 @@ export default function DivisaoEtiquetas({ navigation, search = '' }) {
   function getProductData(find = '') {
     setLoading(true)
     axios
-      .get(`/wBuscaEtiq?Etiqueta=${find}`)
+      .get(`/wBuscaEtiq?Etiqueta=${find}&Saldo=NAO`)
       .then(({ data }) => {
         setLoading(false)
         setEtiqueta(data)
@@ -110,8 +110,8 @@ export default function DivisaoEtiquetas({ navigation, search = '' }) {
   },[search])
 
   const onCodeProductScanned = (code) => {
-    getProductData(code)
     setOpenProductScanner(false)
+    getProductData(code)
   }
 
   const navigationView = () => {

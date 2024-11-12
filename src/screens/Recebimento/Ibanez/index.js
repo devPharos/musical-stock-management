@@ -307,7 +307,7 @@ export default function Ibanez({ navigation }) {
 
   const Item = ({ item, onPress }) => (
     <>
-      <TouchableOpacity onPress={onPress} style={[styles.item, { backgroundColor: "#fff", borderRadius: 8, margin: 16, borderColor: colors["green-300"], borderWidth: 1 }]}>
+      <TouchableOpacity onPress={onPress} style={[styles.item, { backgroundColor: "#fff", borderRadius: 8, margin: 16, borderColor: item.BLOQVENDA === 'S' ? colors['red-300'] :  colors["green-300"], borderWidth: 1 }]}>
         <View style={{ padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <Image source={{ uri: item.PRODUTOOBJ.IMAGEM }} style={{ width: 50, height: 50 }} />
           <View style={{ flex: 1, marginLeft: 8 }}>
@@ -326,7 +326,7 @@ export default function Ibanez({ navigation }) {
           </View>
           <Icon name="chevron-forward-outline" color="#111" size={24} />
         </View>
-        <View style={{ paddingHorizontal: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
+        <View style={{ paddingHorizontal: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
           {item.PROXIMAREVISAO ? <View style={{ padding: 8, borderRadius: 8 }}>
             <Text style={{ color: "#111", fontSize: 14 }}>Última Revisão: <Text style={{ color: colors["green-300"], fontSize: 14, fontWeight: 'bold' }}>{item.REVISAO}</Text></Text>
           </View> : <View style={{ padding: 8, borderRadius: 8 }}>
@@ -336,6 +336,12 @@ export default function Ibanez({ navigation }) {
             <Text style={{ color: "#111", fontSize: 14 }}>Validade: <Text style={{ color: colors["green-300"], fontSize: 14, fontWeight: 'bold' }}>{item.VIGENCIA}</Text></Text>
           </View>}
         </View>
+        {item.BLOQVENDA === 'S' && 
+        <View style={{ paddingHorizontal: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+        <View style={{ padding: 8, borderRadius: 8, width: '100%' }}>
+            <Text style={{ backgroundColor: colors['red-300'], color: '#FFF', padding: 4, borderRadius: 4, fontSize: 12, textAlign: 'center' , width: '100%' }}>Produto com defeito que impede a sua venda.</Text>
+          </View>
+          </View>}
         
         {item.ENDERECO.trim() && <View style={{ paddingHorizontal: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
           <View style={{ padding: 8, borderRadius: 8 }}>

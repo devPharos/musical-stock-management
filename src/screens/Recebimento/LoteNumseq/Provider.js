@@ -12,7 +12,7 @@ export default function LoteNumseqRootProvider({ navigation }) {
   return (
     <LoteNumseqProvider>
       <Stack.Navigator
-        initialRouteName="LoteNumseq"
+        initialRouteName="wLoteNumseq"
         screenOptions={{
           headerBackTitleVisible: false,
           headerTintColor: colors['gray-500'],

@@ -23,12 +23,13 @@ import axios from 'axios'
 import { useRecebimento } from '../../../../hooks/recebimento'
 import { CameraView, useCameraPermissions } from 'expo-camera'
 import { RFPercentage } from 'react-native-responsive-fontsize'
+import Scanner from '../../../../components/scanner'
 
 export function Items({ navigation }) {
   const [openCameraReader, setOpenCameraReader] = useState(false);
   const [loading, setLoading] = useState(false)
   const { selectedInvoices, invoiceItems, setSelectedInvoices, setInvoiceItems, handleModifySelectedInvoices } = useRecebimento()
-  const { selectedPrinter } = useUser()
+  const { selectedPrinter, refreshAuthentication } = useUser()
   const [allItemsWereConferred, setAllItemsWereConferred] = useState(false)
   const [printerNotSelected, setPrinterNotSelected] = useState(false)
   const [checkdItems, setCheckedItems] = useState(0)
@@ -49,28 +50,29 @@ export function Items({ navigation }) {
       }
   }, [permission])
 
-  async function handleBarCodeScanned({ type, data }) {
+  function handleBarCodeScanned(data) {
+    setOpenCameraReader(false);
+    setLoading(true);
     if(loading) {
         return;
     }
-    const filteredItems = [];
-
-    invoiceItems.map(invoice => {
-      invoice.map(item => {
-        if(item.codigodebarras.trim() === data.trim()) {
-          filteredItems.push(item)
-        }
-        return item
+    setTimeout(() => {
+      const filteredItems = [];
+  
+      invoiceItems.map(invoice => {
+        invoice.map(item => {
+          if(item.codigodebarras.trim() === data.trim()) {
+            filteredItems.push(item)
+          }
+          return item
+        })
+        return invoice
       })
-      return invoice
-    })
-    // setSelectedProduct(filteredItems)
-    setOpenQuantityInform(filteredItems)
-    setLoading(true);
+      setOpenQuantityInform(filteredItems)
 
-    // Trecho de consulta
-    setOpenCameraReader(false);
-    setLoading(false);
+      // Trecho de consulta
+      setLoading(false);
+    }, 200);
   };
 
   useEffect(() => {
@@ -117,7 +119,7 @@ export function Items({ navigation }) {
           itens.push(...inv)
       })
       const body = {
-        itens,
+        itens: itens.filter(item => item.order > 0),
         impressora: selectedPrinter.CODIGO,
         imprimeetiquetas: true,
       }
@@ -147,6 +149,10 @@ export function Items({ navigation }) {
         })
         .catch((error) => {
           if (error) {
+            if(error.message?.includes('401')) {
+              refreshAuthentication();
+              return;
+            }
             console.warn(error)
             setLoading(false)
           }
@@ -181,80 +187,93 @@ export function Items({ navigation }) {
         source={require('../../../../assets/bg.png')}
         style={styles.content}
       >
-        {loading ?
-        <ActivityIndicator color={colors['green-300']} />
-        : allItemsWereConferred ?
-          <TouchableOpacity style={styles.button} onPress={() => handleButtonAction()}>
-            <Text style={styles.buttonLabel}>
-              Finalizar Recebimento
-            </Text>
-            <Icon
-              name="barcode-outline"
-              size={30}
-              color={colors['gray-500']}
-            />
-          </TouchableOpacity>
-        :
-        checkdItems > 0 ?
-        <>
-        <TouchableOpacity style={styles.button} onPress={() => handleButtonAction()}>
-            <Text style={styles.buttonLabel}>
-              Finalizar Recebimento
-            </Text>
-            <Icon
-              name="barcode-outline"
-              size={30}
-              color={colors['gray-500']}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.button} onPress={() => handleOpenCamera()}>
-            <Text style={styles.buttonLabel}>
-              Continuar Recebimento
-            </Text>
-            <Icon
-              name="barcode-outline"
-              size={30}
-              color={colors['gray-500']}
-            />
-          </TouchableOpacity>
-          </>
-          :
-          <TouchableOpacity style={styles.button} onPress={() => handleOpenCamera()}>
-            <Text style={styles.buttonLabel}>
-              Continuar Recebimento
-            </Text>
-            <Icon
-              name="barcode-outline"
-              size={30}
-              color={colors['gray-500']}
-            />
-          </TouchableOpacity>
+
+        {loading && <ActivityIndicator color={colors['green-300']} />}
+
+        {openCameraReader && !loading &&
+            <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8 }}>
+              <Scanner loading={loading} setLoading={setLoading} handleCodeScanned={handleBarCodeScanned} handleClose={() => setOpenCameraReader(false)} buscaPorTexto={true} />
+            </View>
         }
 
-        {printerNotSelected && (
-          <Text style={styles.errorLabel}>Selecione uma impressora</Text>
-        )}
+        { !openCameraReader && !loading &&
+          <View style={{ flex: 1, width: '100%', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 24 }}>
 
-        <View style={styles.table}>
-          <ScrollView style={styles.items}>
-            {selectedInvoices.map((i, index) => {
-              return (
-                <View key={index}>
-                  <View style={styles.header}>
-                    <Text style={styles.title}>
-                      NF {i.notafiscal} - {i.razaosocial.substring(0, 20)}
-                    </Text>
-                  </View>
-                  {i?.itens?.map((item, index) => {
-                    return <ItemsCard itemData={item} key={index} />
-                  })}
-                </View>
-              )
-            })}
-          </ScrollView>
-        </View>
+            {allItemsWereConferred ?
+              <TouchableOpacity style={styles.button} onPress={() => handleButtonAction()}>
+                <Text style={styles.buttonLabel}>
+                  Finalizar Recebimento
+                </Text>
+                <Icon
+                  name="barcode-outline"
+                  size={30}
+                  color={colors['gray-500']}
+                />
+              </TouchableOpacity>
+            :
+            checkdItems > 0 ?
+            <>
+            <TouchableOpacity style={styles.button} onPress={() => handleButtonAction()}>
+                <Text style={styles.buttonLabel}>
+                  Finalizar Recebimento
+                </Text>
+                <Icon
+                  name="barcode-outline"
+                  size={30}
+                  color={colors['gray-500']}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.button} onPress={() => handleOpenCamera()}>
+                <Text style={styles.buttonLabel}>
+                  Continuar Recebimento
+                </Text>
+                <Icon
+                  name="barcode-outline"
+                  size={30}
+                  color={colors['gray-500']}
+                />
+              </TouchableOpacity>
+              </>
+              :
+              <TouchableOpacity style={styles.button} onPress={() => handleOpenCamera()}>
+                <Text style={styles.buttonLabel}>
+                  Continuar Recebimento
+                </Text>
+                <Icon
+                  name="barcode-outline"
+                  size={30}
+                  color={colors['gray-500']}
+                />
+              </TouchableOpacity>
+            }
+
+            {printerNotSelected && (
+              <Text style={styles.errorLabel}>Selecione uma impressora</Text>
+            )}
+
+            <View style={styles.table}>
+              <ScrollView style={styles.items}>
+                {selectedInvoices.map((i, index) => {
+                  return (
+                    <View key={index}>
+                      <View style={styles.header}>
+                        <Text style={styles.title}>
+                          NF {i.notafiscal} - {i.razaosocial.substring(0, 20)}
+                        </Text>
+                      </View>
+                      {i?.itens?.map((item, index) => {
+                        return <ItemsCard itemData={item} key={index} />
+                      })}
+                    </View>
+                  )
+                })}
+              </ScrollView>
+            </View>
+
+          </View>
+        }
         <PrinterButton navigation={navigation} />
-        {openCameraReader && !loading ?
+        {/* {openCameraReader && !loading ?
           <Modal
           animationType="slide"
           transparent={true}
@@ -286,7 +305,7 @@ export function Items({ navigation }) {
                       </ScrollView>
                   </KeyboardAvoidingView>
               </View>
-          </Modal> : null }
+          </Modal> : null } */}
 
 
       {openQuantityInform && openQuantityInform.length > 0 && !loading ?
@@ -341,7 +360,7 @@ export function Items({ navigation }) {
             </View>
           </View>
         </Modal>
-        : null }
+        : null}
       </ImageBackground>
     </SafeAreaView>
   )
@@ -369,7 +388,6 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     justifyContent: 'center',
-    paddingTop: 24,
     alignItems: 'center',
     gap: 24,
   },

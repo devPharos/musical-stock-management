@@ -18,7 +18,7 @@ export default function Profile({ navigation,setOpenProfile }) {
         <TouchableOpacity onPress={() => handleLogout()} style={{ backgroundColor: "#efefef", borderWidth: 1, borderColor: '#ccc',borderRadius: 8, padding: 8, overflow: 'hidden' }}>
           <Text style={{ color: "#111", fontWeight: 'bold' }}>Logout</Text>
         </TouchableOpacity> */}
-        <TouchableOpacity onPress={() => navigation.push('ConsultaEnderecoProvider')} style={{ borderRadius: 25, width: 45, height: 45, backgroundColor: colors['gray-500'], justifyContent: 'center', alignItems: 'center' }}>
+        <TouchableOpacity onPress={() => navigation.push('wBuscaEnd')} style={{ borderRadius: 25, width: 45, height: 45, backgroundColor: colors['gray-500'], justifyContent: 'center', alignItems: 'center' }}>
           <Icon name="search" size={22} color='#FFF' />
       </TouchableOpacity>
       </View>

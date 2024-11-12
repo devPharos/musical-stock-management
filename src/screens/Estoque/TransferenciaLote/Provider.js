@@ -12,7 +12,7 @@ export default function TransferenciaLoteRProvider({ navigation }) {
   return (
     <TransferenciaProvider>
       <Stack.Navigator
-        initialRouteName="TransferenciaLote"
+        initialRouteName="wTransferirLote"
         screenOptions={{
           headerBackTitleVisible: false,
           headerTintColor: colors['gray-500'],

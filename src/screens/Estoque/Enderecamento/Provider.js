@@ -12,7 +12,7 @@ export default function EnderecamentoRProvider({ navigation }) {
   return (
     <EnderecamentoProvider>
       <Stack.Navigator
-        initialRouteName="Enderecamento"
+        initialRouteName="wEnderecar"
         screenOptions={{
           headerBackTitleVisible: false,
           headerTintColor: colors['gray-500'],

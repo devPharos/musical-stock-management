@@ -13,7 +13,7 @@ export default function CriaEnderecoRProvider({ navigation }) {
   return (
     <ReimpressaoProvider>
       <Stack.Navigator
-        initialRouteName="CriaEndereco"
+        initialRouteName="wCriaEnd"
         screenOptions={{
           headerBackTitleVisible: false,
           headerTintColor: colors['gray-500'],
@@ -24,7 +24,7 @@ export default function CriaEnderecoRProvider({ navigation }) {
           name="CriaEnderecoRaiz"
           component={CriaEndereco}
           options={{
-            title: 'Divisão de Etiquetas',
+            title: 'Criação de Endereço',
             headerLeft: () => (
               <TouchableOpacity onPress={() => navigation.goBack()}>
                 <Icon

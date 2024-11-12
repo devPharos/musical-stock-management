@@ -12,7 +12,7 @@ export default function EmbarquesRootProvider({ navigation }) {
   return (
     <EmbarquesProvider>
       <Stack.Navigator
-        initialRouteName="Embarques"
+        initialRouteName="wEmbarques"
         screenOptions={{
           headerBackTitleVisible: false,
           headerTintColor: colors['gray-500'],

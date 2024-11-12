@@ -44,6 +44,7 @@ export default function Transferencia({ navigation }) {
 
 
   const onOriginCodeScanned = (code) => {
+    setOpenOriginScanner(false)
     setLoading(true)
     const Armazem = code.substring(0, 2)
     const Endereco = code.substring(2)
@@ -72,9 +73,10 @@ export default function Transferencia({ navigation }) {
   }
 
   const onCodeProductScanned = (code) => {
+    setOpenProductScanner(false)
     setLoading(true)
     axios
-      .get(`/wBuscaEtiq?Etiqueta=${code}`)
+      .get(`/wBuscaEtiq?Etiqueta=${code}&Saldo=NAO`)
       .then((response) => {
         const data = response.data
 
@@ -107,6 +109,7 @@ export default function Transferencia({ navigation }) {
   }
 
   const onDestinationCodeScanned = (code) => {
+    setOpenDestinationScanner(false)
     setLoading(true)
     const Armazem = code.substring(0, 2)
     const Endereco = code.substring(2)
@@ -133,8 +136,8 @@ export default function Transferencia({ navigation }) {
   }
 
   const onSNCodeScanned = (code) => {
-    setLoading(false)
     setOpenSNScanner(false)
+    setLoading(false)
     axios.get(`/wIbanezEan?Produto=${product.PRODUTOS.CODIGO}&SN=${code}`)
           .then(({ data: retorno }) => {
             if(retorno && retorno.Message) {

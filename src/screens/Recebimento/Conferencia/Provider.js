@@ -13,7 +13,7 @@ export default function RecebimentoRootProvider({ navigation }) {
   return (
     <RecebimentoProvider>
       <Stack.Navigator
-        initialRouteName="RecebimentoConferencia"
+        initialRouteName="wConfereNF"
         screenOptions={{
           headerBackTitleVisible: false,
           headerTintColor: colors['gray-500'],

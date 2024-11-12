@@ -81,6 +81,7 @@ export default function Reimpressao({ navigation, search = '' }) {
   },[search])
 
   const onCodeProductScanned = (code) => {
+    setOpenProductScanner(false)
     getProductData(code)
   }
 

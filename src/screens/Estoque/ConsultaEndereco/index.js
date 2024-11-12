@@ -16,11 +16,13 @@ import {
   import { useRef, useState } from 'react'
   import Scanner from '../../../components/scanner'
   import axios from 'axios'
+import { useUser } from '../../../hooks/user'
   export default function ConsultaEndereco() {
     const [ endereco, setEndereco ] = useState(null)
     const [openProductScanner, setOpenProductScanner] = useState(false)
     const [loading, setLoading] = useState(false)
     const drawer = useRef(null);
+    const { refreshAuthentication } = useUser()
   
     function getProductData(find) {
       setLoading(true)
@@ -37,11 +39,16 @@ import {
             setEndereco(null)
           }
         }).catch(err => {
+          if(err.message?.includes('401')) {
+            refreshAuthentication();
+            return;
+          }
           setLoading(false)
         })
     }
   
     const onCodeProductScanned = (code) => {
+      setOpenProductScanner(false)
       getProductData(code)
     }
   

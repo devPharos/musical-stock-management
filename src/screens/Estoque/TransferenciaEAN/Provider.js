@@ -12,7 +12,7 @@ export default function TransferenciaRProvider({ navigation }) {
   return (
     <TransferenciaProvider>
       <Stack.Navigator
-        initialRouteName="Transferencia"
+        initialRouteName="wTransferir"
         screenOptions={{
           headerBackTitleVisible: false,
           headerTintColor: colors['gray-500'],

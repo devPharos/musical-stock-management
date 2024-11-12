@@ -20,7 +20,6 @@ import {
   import axios from 'axios'
 import { useUser } from '../../../hooks/user'
   export default function ConsultaProduto({ search = '', setSearch = () => null }) {
-  
     const [ product, setProduct ] = useState(null)
     const [openProductScanner, setOpenProductScanner] = useState(false)
     const [loading, setLoading] = useState(false)
@@ -70,6 +69,7 @@ import { useUser } from '../../../hooks/user'
     },[search])
   
     const onCodeProductScanned = (code) => {
+      setOpenProductScanner(false)
       getProductData(code)
     }
   
@@ -205,6 +205,7 @@ import { useUser } from '../../../hooks/user'
             {openProductScanner && (
               <Scanner handleCodeScanned={onCodeProductScanned} />
             )}
+            {/* {console.log(loading)} */}
   
             {!openProductScanner && (
               <View style={styles.innerContent}>

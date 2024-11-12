@@ -1,18 +1,18 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import Ibanez from '.'
-import { IbanezProvider } from '../../../hooks/ibanez'
 import { colors } from '../../../styles/colors'
 import { TouchableOpacity } from 'react-native'
 import Icon from 'react-native-vector-icons/Ionicons'
 import { useUser } from '../../../hooks/user'
+import Pesagem from '.'
+import { PesagemProvider } from '../../../hooks/pesagem'
 const Stack = createNativeStackNavigator()
 
-export default function IbanezRootProvider({ navigation }) {
+export default function PesagemRProvider({ navigation }) {
   const { ambiente } = useUser();
   return (
-    <IbanezProvider>
+    <PesagemProvider>
       <Stack.Navigator
-        initialRouteName="wIbanez"
+        initialRouteName="wPesagem"
         screenOptions={{
           headerBackTitleVisible: false,
           headerTintColor: colors['gray-500'],
@@ -20,10 +20,10 @@ export default function IbanezRootProvider({ navigation }) {
         }}
       >
         <Stack.Screen
-          name="IbanezRaiz"
-          component={Ibanez}
+          name="PesagemRaiz"
+          component={Pesagem}
           options={{
-            title: 'Inspeção Ibanez',
+            title: 'Pesagem',
             headerLeft: () => (
               <TouchableOpacity onPress={() => navigation.goBack()}>
                 <Icon
@@ -36,7 +36,8 @@ export default function IbanezRootProvider({ navigation }) {
             ),
           }}
         />
+
       </Stack.Navigator>
-    </IbanezProvider>
+    </PesagemProvider>
   )
 }
