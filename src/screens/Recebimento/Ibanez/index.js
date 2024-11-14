@@ -91,6 +91,7 @@ export default function Ibanez({ navigation }) {
     } else if (buscarPor === 'numserie') {
       setPrinted(false)
       setOpenCameraReader(null);
+      setFotos([])
       if (data.toUpperCase() === inCamera.ETIQUETA.toUpperCase()) {
         Alert.alert('Atenção!', 'A etiqueta bipada se refere à etiqueta do produto e não ao número de série.', [
           {
@@ -207,14 +208,13 @@ export default function Ibanez({ navigation }) {
       PecasPN: selectedPendente.PECASPARTNUMBERS || ''
     }
 
-    setLoading(false)
-
     try {
       axios
         .post(`/wIbanez`, body)
         .then(({ data }) => {
           if (data.Status === 200) {
             setLoading(false)
+            setFotos([])
             Alert.alert("Atenção!", data.Message)
             drawer.current.closeDrawer()
             setSelectedPendente(null)
@@ -497,6 +497,7 @@ export default function Ibanez({ navigation }) {
               
               {selectedPendente.NUMSERIE && printed && selectedPendente.CONFORMIDADE && <TouchableOpacity
                 onPress={handleInspecao}
+                disabled={loading}
                 style={{ padding: 16, backgroundColor: colors["gray-100"], borderRadius: 4 }}>
                 <Text style={{ textAlign: 'center', color: "#111", fontWeight: 'bold' }}>Finalizar Inspeção</Text>
               </TouchableOpacity>}

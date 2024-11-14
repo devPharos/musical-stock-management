@@ -9,6 +9,8 @@ import {
   Image,
   Alert,
   TextInput,
+  ScrollView,
+  ActivityIndicator,
 } from 'react-native'
 import Icon from 'react-native-vector-icons/Ionicons'
 import { colors } from '../../../styles/colors'
@@ -27,6 +29,7 @@ export default function Separacao({ navigation, search = '' }) {
   const qtdRef = useRef(null)
   const { refreshAuthentication } = useUser()
   const [seeSeparated, setSeeSeparated] = useState(false)
+  const filaRegex = /FC\d{4}$/
 
   useEffect(() => {
     async function getOrdensDeSeparacao() {
@@ -49,6 +52,35 @@ export default function Separacao({ navigation, search = '' }) {
     }
     getOrdensDeSeparacao()
   },[])
+
+
+  useEffect(
+    () =>
+      navigation.addListener('beforeRemove', (e) => {
+
+        if(ordem) {
+          // Prevent default behavior of leaving the screen
+          e.preventDefault();
+  
+          // Prompt the user before leaving the screen
+          Alert.alert(
+            'Deseja realmente sair?',
+            'Ao sair, a separação deste item será cancelada.',
+            [
+              { text: "Não sair", style: 'cancel', onPress: () => {} },
+              {
+                text: 'Sair',
+                style: 'destructive',
+                // If the user confirmed, then we dispatch the action we blocked earlier
+                // This will continue the action that had triggered the removal of the screen
+                onPress: () => navigation.dispatch(e.data.action),
+              },
+            ]
+          );
+        }
+      }),
+    [navigation]
+  );
 
   useEffect(() => {
     if(ordem && ordem.ITENS.find(item => item.PENDENTEINSPECAO === true)) {
@@ -142,10 +174,6 @@ export default function Separacao({ navigation, search = '' }) {
   }
 
   function onFoundFila(code) {
-    const validRegex = /FC\d{4}/
-    if(!validRegex.test(code)) {
-      return;
-    }
     setSearchFila(false)
     setLoading(true)
     if(ordem.FILAS) {
@@ -298,8 +326,10 @@ export default function Separacao({ navigation, search = '' }) {
       )}
 
       {searchFila && (
-        <Scanner loading={loading} setLoading={setLoading} handleCodeScanned={onFoundFila} handleClose={() => setSearchFila(false)} buscaPorTexto={false} />
+        <Scanner loading={loading} setLoading={setLoading} regex={filaRegex} handleCodeScanned={onFoundFila} handleClose={() => setSearchFila(false)} buscaPorTexto={false} />
       )}
+
+      {!ordens && <ActivityIndicator color={colors["green-300"]} />}
 
       {!find && <View style={styles.innerContent}>
 
@@ -505,28 +535,30 @@ export default function Separacao({ navigation, search = '' }) {
             </View>}
           </View>
 
-            {ordem.RESTAM === 1 && 
-              <View style={[styles.inputContent,{width: '100%', marginTop: 24, borderTopWidth: 1, borderColor: colors['gray-200'], paddingTop: 24 }]}>
-                <View style={styles.textContainer}>
-                  <View style={{ flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start' }}>
-                    <Text style={styles.buttonLabel}>Filas de Conferência</Text>
-                  </View>
+          {ordem.RESTAM === 1 && 
+          <ScrollView style={{ height: '100%', width: '100%' }}>
+            <View style={[styles.inputContent,{width: '100%', marginTop: 24, borderTopWidth: 1, borderColor: colors['gray-200'], paddingTop: 24 }]}>
+              <View style={styles.textContainer}>
+                <View style={{ flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start' }}>
+                  <Text style={styles.buttonLabel}>Filas de Conferência</Text>
                 </View>
-                <TouchableOpacity
-                  style={styles.button}
-                  onPress={() => setSearchFila(true)}
-                >
-                  <Text style={styles.buttonLabel}>
-                    Escanear
-                  </Text>
-                  <Icon
-                    name="barcode-outline"
-                    size={30}
-                    color={colors['gray-500']}
-                  />
-                </TouchableOpacity>
+              </View>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={() => setSearchFila(true)}
+              >
+                <Text style={styles.buttonLabel}>
+                  Escanear
+                </Text>
+                <Icon
+                  name="barcode-outline"
+                  size={30}
+                  color={colors['gray-500']}
+                />
+              </TouchableOpacity>
 
-              </View>}
+            </View>
+            </ScrollView>}
 
 
               {ordem.FILAS && ordem.FILAS && ordem.FILAS.map((fila, index) =><View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', padding: 8, gap: 8, borderBottomWidth: 1, borderBottomColor: colors['gray-200'], width: '100%' }} key={index}>

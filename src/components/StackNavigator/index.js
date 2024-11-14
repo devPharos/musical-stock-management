@@ -20,6 +20,9 @@ import AjusteProdutoRProvider from '../../screens/Recebimento/AjusteProduto/Prov
 import CriaEnderecoRProvider from '../../screens/Estoque/CriaEndereco/Provider';
 import ConferenciaRProvider from '../../screens/Expedicao/Conferencia/Provider';
 import PesagemRProvider from '../../screens/Expedicao/Pesagem/Provider';
+import FilaExpedicaoRProvider from '../../screens/Expedicao/Expedicao/Provider';
+import EmbarqueRProvider from '../../screens/Expedicao/Embarque/Provider';
+import EtiquetaNotaRProvider from '../../screens/Expedicao/EtiquetaNota/Provider';
 
 const Stack = createNativeStackNavigator()
 
@@ -186,6 +189,30 @@ const StackNavigator = ({ navigation, mainMenu, mainRotina }) => {
                     options={{
                         headerShown: false,
                         title: 'Pesagem',
+                    }}
+                    />
+                    <Stack.Screen
+                    name="wFilaExpedicao"
+                    component={FilaExpedicaoRProvider}
+                    options={{
+                        headerShown: false,
+                        title: 'Fila de Expedição',
+                    }}
+                    />
+                    <Stack.Screen
+                    name="wEmbarque"
+                    component={EmbarqueRProvider}
+                    options={{
+                        headerShown: false,
+                        title: 'Embarque de Pedidos',
+                    }}
+                    />
+                    <Stack.Screen
+                    name="wEtiquetaNota"
+                    component={EtiquetaNotaRProvider}
+                    options={{
+                        headerShown: false,
+                        title: 'Etiqueta de Nota',
                     }}
                     />
             </Stack.Group>}

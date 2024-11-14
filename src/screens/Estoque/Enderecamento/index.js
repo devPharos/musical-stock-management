@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Image,
   TouchableOpacity,
+  ScrollView,
 } from 'react-native'
 import { colors } from '../../../styles/colors'
 import Scanner from '../../../components/scanner'
@@ -251,7 +252,10 @@ export default function Enderecamento() {
           )}
 
           {
-          !openAddressingScanner && !openProductScanner && addressing.PRODUTOS.length > 0 && addressing.PRODUTOS.map((product, index) => ( 
+          !openAddressingScanner && !openProductScanner && addressing.PRODUTOS.length > 0 ?
+          <ScrollView style={{ width: '100%', height: '100%' }}>
+            {addressing.PRODUTOS.map((product, index) => ( 
+            
             <View key={index} style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', padding: 8, gap: 8, borderBottomWidth: 1, borderBottomColor: colors['gray-200'] }}>
               <TouchableOpacity onPress={() => handleRemove(product)}>
                 <Icon name="trash-bin" size={20} color={colors['red-500']} />
@@ -267,6 +271,8 @@ export default function Enderecamento() {
             </View>
           ))
           }
+          </ScrollView>
+           : null }
         </>
         }
       </ImageBackground>

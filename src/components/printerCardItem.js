@@ -6,11 +6,13 @@ import { useUser } from '../hooks/user'
 export function PrinterCardItem({
   printer,
   selected = false,
+  navigation
 }) {
   const { setSelectedPrinter } = useUser()
 
   const onPrinterSelection = () => {
     setSelectedPrinter(printer)
+    navigation.goBack()
   }
 
   return (

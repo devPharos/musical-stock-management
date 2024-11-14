@@ -466,6 +466,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     width: '100%',
+    fontSize: 12,
     color: colors['gray-500'],
   },
   inputContainer: {

@@ -25,6 +25,7 @@ import Icon from 'react-native-vector-icons/Ionicons'
 import { useUser } from '../../../hooks/user'
 import { RFPercentage } from 'react-native-responsive-fontsize'
 import { CameraView, useCameraPermissions } from 'expo-camera'
+import PrinterButton from '../../../components/PrinterButton'
   
 export default function LoteNumseq({ navigation }) {
   const [openCameraReader, setOpenCameraReader] = useState(null);
@@ -96,7 +97,7 @@ export default function LoteNumseq({ navigation }) {
   }
 
   async function handleFinish() {
-      await axios.post(`/wLoteNumseq`,selectedLote)
+      await axios.post(`/wLoteNumseq`,{...selectedLote, IMPRESSORA: selectedPrinter.CODIGO})
       .then(({ data }) => {
         if(data.Status === 200) {
           setLoading(false)
@@ -229,6 +230,7 @@ export default function LoteNumseq({ navigation }) {
         
 
 
+        <PrinterButton navigation={navigation} />
         
       </ImageBackground>
     </SafeAreaView>

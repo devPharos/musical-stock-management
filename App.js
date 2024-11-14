@@ -1,5 +1,6 @@
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
+import * as ScreenOrientation from "expo-screen-orientation";
 import Login from './src/screens/Login'
 import BottomTabs from './src/components/bottomTabs'
 import { UserProvider } from './src/hooks/user'
@@ -10,19 +11,21 @@ import { StatusBar } from 'expo-status-bar'
 import { colors } from './src/styles/colors'
 import ConsultaProdutoProvider from './src/screens/Estoque/ConsultaProduto/Provider'
 import ConsultaEnderecoProvider from './src/screens/Estoque/ConsultaEndereco/Provider'
+import { useEffect, useState } from 'react'
 
 const Stack = createNativeStackNavigator()
 const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 50 : 0
 const APPBAR_HEIGHT = Platform.OS === 'ios' ? 44 : 56
 
 export default function App() {
+
   return (
     <UserProvider>
       <View
         style={[styles.statusBar, { backgroundColor: colors['green-300'] }]}
       >
         <SafeAreaView>
-          <StatusBar translucent backgroundColor={colors['green-300']} />
+          <StatusBar style="auto" translucent backgroundColor={colors['green-300']} />
         </SafeAreaView>
       </View>
       <NavigationContainer>

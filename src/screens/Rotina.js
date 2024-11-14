@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import DrawerProfile from "../components/DrawerProfile";
 
 export default function Rotina({ route, navigation }) {

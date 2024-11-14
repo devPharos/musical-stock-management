@@ -99,7 +99,7 @@ export default function CriaEndereco({ navigation }) {
                     keyboardType='numeric'
                     onEndEditing={e => {setEndereco({ ...endereco, armazem: e.nativeEvent.text }); zonaRef.current.focus()}}
                     placeholder='00'
-                    style={{padding: 10, flex: 1, textAlign: 'right', fontSize: 26, fontWeight: 'bold', color: colors['green-300']}}
+                    style={{paddingHorizontal: 10, paddingVertical: 5, flex: 1, textAlign: 'right', fontSize: 26, fontWeight: 'bold', color: colors['green-300']}}
                   />
                 </View>
               </View>
@@ -113,7 +113,7 @@ export default function CriaEndereco({ navigation }) {
                     keyboardType='numeric'
                     onEndEditing={e => {setEndereco({ ...endereco, zona: e.nativeEvent.text }); ruaRef.current.focus()}}
                     placeholder='00'
-                    style={{padding: 10, flex: 1, textAlign: 'right', fontSize: 26, fontWeight: 'bold', color: colors['green-300']}}
+                    style={{paddingHorizontal: 10, paddingVertical: 5, flex: 1, textAlign: 'right', fontSize: 26, fontWeight: 'bold', color: colors['green-300']}}
                   />
                 </View>
               </View>
@@ -127,7 +127,7 @@ export default function CriaEndereco({ navigation }) {
                     keyboardType='default'
                     onEndEditing={e => {setEndereco({ ...endereco, rua: e.nativeEvent.text }); colunaRef.current.focus()}}
                     placeholder='X'
-                    style={{padding: 10, flex: 1, textAlign: 'right', fontSize: 26, fontWeight: 'bold', color: colors['green-300']}}
+                    style={{paddingHorizontal: 10, paddingVertical: 5, flex: 1, textAlign: 'right', fontSize: 26, fontWeight: 'bold', color: colors['green-300']}}
                   />
                 </View>
               </View>
@@ -141,7 +141,7 @@ export default function CriaEndereco({ navigation }) {
                     keyboardType='numeric'
                     onEndEditing={e => {setEndereco({ ...endereco, coluna: e.nativeEvent.text }); nivelRef.current.focus()}}
                     placeholder='00'
-                    style={{padding: 10, flex: 1, textAlign: 'right', fontSize: 26, fontWeight: 'bold', color: colors['green-300']}}
+                    style={{paddingHorizontal: 10, paddingVertical: 5, flex: 1, textAlign: 'right', fontSize: 26, fontWeight: 'bold', color: colors['green-300']}}
                   />
                 </View>
               </View>
@@ -155,7 +155,7 @@ export default function CriaEndereco({ navigation }) {
                     keyboardType='numeric'
                     onEndEditing={e => {setEndereco({ ...endereco, nivel: e.nativeEvent.text }); subnivelRef.current.focus()}}
                     placeholder='00'
-                    style={{padding: 10, flex: 1, textAlign: 'right', fontSize: 26, fontWeight: 'bold', color: colors['green-300']}}
+                    style={{paddingHorizontal: 10, paddingVertical: 5, flex: 1, textAlign: 'right', fontSize: 26, fontWeight: 'bold', color: colors['green-300']}}
                   />
                 </View>
               </View>
@@ -170,7 +170,7 @@ export default function CriaEndereco({ navigation }) {
                     keyboardType='numeric'
                     onEndEditing={e => setEndereco({ ...endereco, subnivel: e.nativeEvent.text })}
                     placeholder='000'
-                    style={{padding: 10, flex: 1, textAlign: 'right', fontSize: 26, fontWeight: 'bold', color: colors['green-300']}}
+                    style={{paddingHorizontal: 10, paddingVertical: 5, flex: 1, textAlign: 'right', fontSize: 26, fontWeight: 'bold', color: colors['green-300']}}
                   />
                 </View>
               </View>

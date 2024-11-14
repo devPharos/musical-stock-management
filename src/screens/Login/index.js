@@ -14,7 +14,8 @@ import {
   Keyboard,
   Alert,
   TouchableOpacity,
-  StatusBar
+  StatusBar,
+  Linking
 } from 'react-native'
 import { colors } from '../../styles/colors'
 import Icon from 'react-native-vector-icons/Ionicons'
@@ -43,8 +44,8 @@ export default function Login({ navigation }) {
     setBaseURL(varAmbiente === 'producao' ? API_URL : API_TST_URL);
   }
 
-  // const { control,handleSubmit,formState: { errors } } = useForm({ values: { username: 'pharos', password: 'Phr@2023'}, resolver: yupResolver(logInFormSchema) });
-  const { control,handleSubmit,formState: { errors } } = useForm({ values: { username: '', password: ''}, resolver: yupResolver(logInFormSchema) });
+  const { control,handleSubmit,formState: { errors } } = useForm({ values: { username: 'pharos', password: 'Phr@2023'}, resolver: yupResolver(logInFormSchema) });
+  // const { control,handleSubmit,formState: { errors } } = useForm({ values: { username: '', password: ''}, resolver: yupResolver(logInFormSchema) });
 
   const handleLogin = async ({ username, password }) => {
     try {
@@ -237,8 +238,13 @@ export default function Login({ navigation }) {
               <Text style={styles.buttonLabel}>ACESSAR</Text>
             </Pressable>
             </View>
-            <Text style={styles.versionText}>Versão {APP_VERSION}</Text>
-          </>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+              <Text style={styles.versionText}>Versão {APP_VERSION}</Text>
+              <TouchableOpacity style={{ marginRight: 8, padding: 8 }} onPress={() => Linking.openURL('https://play.google.com/store/apps/details?id=com.musicalexpress.stockmanagement&hl=en-US&ah=UahlGVl7utWRyNVC5UElKjKp8wI')}>
+                  <Icon name="sync-sharp" size={24} color={colors['gray-500']} />
+              </TouchableOpacity>
+            </View>
+            </>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
 

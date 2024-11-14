@@ -9,6 +9,7 @@ import {
   Alert,
   TextInput,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native'
 import Icon from 'react-native-vector-icons/Ionicons'
 import { colors } from '../../../styles/colors'
@@ -34,6 +35,7 @@ export default function Conferencia({ navigation }) {
   const [sound, setSound] = useState(null);
   const [seeList, setSeeList] = useState(false)
   const qtdRef = useRef(null)
+  const filaRegex = /FC\d{4}$/
 
   function handleIniciar() {
     setLoading(true)
@@ -195,9 +197,6 @@ export default function Conferencia({ navigation }) {
 
   function onFoundFila(code) {
     // setLoading(true)
-    if(code.substring(0,2) !== 'FC' || code.length !== 6) {
-      return
-    }
     setSearchFila(false)
     const foundFilas = ordem.FILAS.map((fila) => {
       if(fila[0] === code && fila[1] !== 'C') {
@@ -311,7 +310,7 @@ export default function Conferencia({ navigation }) {
   async function confereProduto(product, QTDE) {
     setLoading(true)
     setFind(null)
-    await axios.post(`/wConferencia`, { ordem: ordem.CODIGO, item: product.ITEM, produto: product.PRODUTO.CODIGO, quantidade: QTDE, volume, armazem: product.ARMAZEM, endereco: product.ENDERECO, SN: product.SN || '' })
+    await axios.post(`/wConferencia`, { ordem: ordem.CODIGO, item: product.ITEM, produto: product.PRODUTO.CODIGO, quantidade: QTDE, volume, armazem: product.ARMAZEM, endereco: product.ENDERECO, SN: product.SN || '', volumes })
     .then(({ data }) => {
       if(data.Status === 201) {
         setLoading(false)
@@ -501,9 +500,11 @@ export default function Conferencia({ navigation }) {
         style={styles.content}
       >
 
+      {!ordens && <ActivityIndicator color={colors["green-300"]} />}
+
       {searchFila && (
         <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8 }}>
-        <Scanner loading={loading} setLoading={setLoading} handleCodeScanned={onFoundFila} handleClose={() => setSearchFila(false)} buscaPorTexto={false} />
+        <Scanner loading={loading} setLoading={setLoading} regex={filaRegex} handleCodeScanned={onFoundFila} handleClose={() => setSearchFila(false)} buscaPorTexto={false} />
         </View>
       )}
 
@@ -591,166 +592,165 @@ export default function Conferencia({ navigation }) {
 
               </View>
 
-          </View>
-        }
-        {ordem && !ordem.FILAS.find((fila) => fila[1] !== 'C') && !searchFila && 
+        </View>}
         
+        {ordem && !ordem.FILAS.find((fila) => fila[1] !== 'C') && !searchFila && 
         <View style={{ flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', gap: 4, borderRadius: 8 }}>
-          <View style={{ height: 48, backgroundColor: "#111", flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 4 }}>
-            <View style={{ flexDirection: 'column', flex: 1, paddingHorizontal: 12, paddingVertical: 6 }}>
-              <Text style={{ fontSize: 14,color: '#FFF',textAlign: 'center' }}>Pedido: {ordem.PEDIDO}</Text>
-              <Text style={{ fontSize: 12,color: '#FFF', textAlign: 'center' }}>Cliente: {ordem.RAZAOSOCIAL.trim()}</Text>
-            </View>
-          </View>
-
-          {ordem.STATUS !== '4' && <View style={{ height: 32, backgroundColor: ordem.STATUS === '2' ? colors['red-300'] : colors['green-300'], flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 4 }}>
-            <View style={{ flexDirection: 'column', flex: 1, paddingHorizontal: 12, paddingVertical: 6 }}>
-              <Text style={{ fontSize: 14,color: '#FFF',textAlign: 'center' }}>Status: {ordem.STATUS === '2' ? 'Não iniciado' : 'Iniciado'} - {ordem.RESTAM} item(s) restante(s)</Text>
-            </View>
-          </View>}
-          
-          {volumes.length > 0 && <View style={{ backgroundColor: colors['gray-50'], flexDirection: 'column', alignItems: 'center', gap: 8, borderRadius: 4 }}>
-              {find && <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8, backgroundColor: '#FFF', borderRadius: 8, overflow: 'hidden', paddingVertical: 8 }}>
-                <Image source={{ uri: find.PRODUTO.IMAGEM }} style={{ width: 50, height: 50 }} />
-                <View style={{ flexDirection: 'column', flex: 1 }}>
-                <Text style={{ fontSize: 12 }}>Volume: <Text style={{ fontWeight: 'bold', fontSize: 16 }}>{volume.toString().padStart(2, '0')}</Text></Text>
-                  <Text style={{ fontSize: 12 }}>Partnumber: <Text style={{ fontWeight: 'bold' }}>{find.PRODUTO.PARTNUMBER}</Text></Text>
-                  <Text style={{ fontSize: 12 }}>Código ME: <Text style={{ fontWeight: 'bold' }}>{find.PRODUTO.CODIGO}</Text></Text>
-                </View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, width: 70 }}>
-                  <TextInput
-                    editable={true}
-                    ref={qtdRef}
-                    keyboardType='numeric'
-                    autoFocus={true}
-                    onEndEditing={e => onQuantityChange(find, e.nativeEvent.text)}
-                    value={find.CONFSN === 'S' ? 1 : 0}
-                    style={[styles.button,{ minWidth: 50, textAlign: 'center'}]}
-                  />
-                </View>
-              </View>}
-            {volumes.sort((a, b) => a.volume - b.volume).map((vol, index) => {
-              if(seeOtherVolumes || volume === (index + 1)) {
-              return <View key={index} style={{ width: '100%', flexDirection: 'column', alignItems: 'center', gap: 4, borderWidth: 1, borderColor: volume === (index + 1) ? colors['green-300'] : colors['gray-100'], borderRadius: 4, padding: 4 }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-                <TouchableOpacity onPress={() => handleSetVolume(index + 1)} style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 0, backgroundColor: colors['gray-50'], paddingHorizontal: 16, paddingVertical: 4, borderRadius: 8 }}>
-                    <Icon name={volume === index + 1 ? 'albums-outline' : 'albums'} size={20} color={colors['gray-300']} />
-                    <Text style={{ fontSize: 14, color: colors['gray-300'] }}>Volume: {(index + 1).toString().padStart(2, '0')}</Text>
-                </TouchableOpacity>
-                {ordem.STATUS === '2' && <TouchableOpacity onPress={() => handleIniciar()} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 0, backgroundColor: colors['gray-500'], paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8 }}>
-                    <Icon name={'play'} size={16} color='#FFF' />
-                    <Text style={{ fontSize: 14, color: '#FFF' }}>Iniciar Conferência</Text>
-                </TouchableOpacity>}
-                {ordem.STATUS === '3' && volume === (index + 1 ) && <TouchableOpacity onPress={() => setSearchItem(true)} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 0, backgroundColor: colors['gray-500'], paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8 }}>
-                    <Icon name={'add-sharp'} size={20} color='#FFF' />
-                    <Text style={{ fontSize: 14, color: '#FFF' }}>Produtos</Text>
-                </TouchableOpacity>}
-                {ordem.STATUS === '4' && searchPeso !== vol.volume && vol.peso != 0 &&
-                  <>
-                    <Text style={{ fontSize: 16, fontWeight: 'bold', color: vol.peso < ordem.ITENS.filter(item => item.VOLUMES.length > 0).map(item => item.PRODUTO.PESO * item.VOLUMES.filter(vol2 => vol2.volume === vol.volume).map(vol3 => vol3.quantidade).reduce((a, b) => a + b, 0)).reduce((a, b) => a + b, 0).toFixed(2) ? colors["red-300"] : colors['green-300'] }}>
-                      {vol.peso} Kg <Text style={{ fontSize: 16, color: colors['gray-200'] }}> / {ordem.ITENS.filter(item => item.VOLUMES.length > 0).map(item => item.PRODUTO.PESO * item.VOLUMES.filter(vol2 => vol2.volume === vol.volume).map(vol3 => vol3.quantidade).reduce((a, b) => a + b, 0)).reduce((a, b) => a + b, 0).toFixed(2)} Kg</Text></Text>
-                  </>
-                }
-                {ordem.STATUS === '4' && 
-                <>
-                
-                {searchPeso === volume && vol.volume === volume ?
-                  <TextInput
-                    editable={true}
-                    ref={qtdRef}
-                    keyboardType='numeric'
-                    autoFocus={true}
-                    onEndEditing={e => onChangePeso(volume, e.nativeEvent.text.replace(',', '.'))}
-                    // value={volumes[index].quantidade.toString()}
-                    style={{ backgroundColor: '#FFF', borderRadius: 4, paddingHorizontal: 8, paddingVertical: 4, flex: 1, textAlign: 'right', fontSize: 16, fontWeight: 'bold', color: colors['green-300']}}
-                  />
-                :
-                !vol.peso && <TouchableOpacity onPress={() => handleSearchPeso(vol.volume)} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 0, backgroundColor: colors['gray-500'], paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8 }}>
-                      <Icon name={'add-sharp'} size={20} color='#FFF' />
-                      <Text style={{ fontSize: 14, color: '#FFF' }}>Peso</Text>
-                  </TouchableOpacity>
-                }
-                </>}
-                {index > 0 && !ordem.ITENS.find(item => item.VOLUMES && item.VOLUMES.find(vol => vol.volume === volume)) && volume === (index + 1 ) && <TouchableOpacity onPress={() => handleRemoveVolume()} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 0, backgroundColor: colors['gray-500'], paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8 }}>
-                    <Icon name={'trash-bin'} size={16} color='#FFF' />
-                </TouchableOpacity>}
+            <View style={{ height: 48, backgroundColor: "#111", flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 4 }}>
+              <View style={{ flexDirection: 'column', flex: 1, paddingHorizontal: 12, paddingVertical: 6 }}>
+                <Text style={{ fontSize: 14,color: '#FFF',textAlign: 'center' }}>Pedido: {ordem.PEDIDO}</Text>
+                <Text style={{ fontSize: 12,color: '#FFF', textAlign: 'center' }}>Cliente: {ordem.RAZAOSOCIAL.trim()}</Text>
               </View>
-            </View>}}
-            )}
-          </View>}
-
-          {ordem.STATUS === '3' && <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: 2, marginTop: 0, paddingHorizontal: 8, paddingVertical: 8, borderRadius: 4 }}>
-            {ordem.ITENS.find(item => item.SALDO > 0) && <TouchableOpacity onPress={() => handleAddVolume()} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 0, backgroundColor: colors['gray-500'], paddingHorizontal: 8, paddingVertical: 8, borderRadius: 4 }}>
-                <Icon name={'add-sharp'} size={14} color='#FFF' />
-                <Text style={{ fontSize: 12, color: '#FFF' }}>Volume</Text>
-            </TouchableOpacity>}
-            <TouchableOpacity onPress={() => setSeeOtherVolumes(!seeOtherVolumes)} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 0, backgroundColor: colors['gray-50'], borderWidth: 1, borderColor: seeOtherVolumes ? colors['green-300'] : colors['gray-100'], paddingHorizontal: 8, paddingVertical: 8, borderRadius: 4 }}>
-                <Icon name={seeOtherVolumes ? 'eye' : 'eye-off'} size={14} color='#111' />
-                <Text style={{ fontSize: 12, color: '#111' }}>Outros volumes</Text>
-            </TouchableOpacity>
-            {ordem.ITENS.find(item => item.SALDO > 0) ? <TouchableOpacity onPress={() => handleSeeList()} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 0, backgroundColor: colors['gray-50'], borderWidth: 1, borderColor: seeList ? colors['green-300'] : colors['gray-100'], paddingHorizontal: 8, paddingVertical: 8, borderRadius: 4 }}>
-                <Icon name={seeList ? 'eye' : 'eye-off'} size={14} color='#111' />
-                <Text style={{ fontSize: 12, color: '#111' }}>Pendentes</Text>
-            </TouchableOpacity>
-            :
-            <TouchableOpacity onPress={() => setOrdem({...ordem, STATUS: '4' })} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 0, backgroundColor: colors['green-300'], paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8 }}>
-            <Text style={{ fontSize: 14, color: '#111' }}>Realizar Pesagem</Text>
-            <Icon name={'barcode'} size={20} color='#111' />
-          </TouchableOpacity>}
-          </View>}
-
-          {ordem.STATUS === '4' && volumes.filter(vol => !vol.peso).length === 0 && 
-            <View style={{ width: '100%', flexDirection: 'column', alignItems: 'center', gap: 8, borderRadius: 4 }}>
-              {/* Finalizar pesagem */}
-              <TouchableOpacity onPress={() => handleSendPeso()} style={{ width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 0, backgroundColor: colors['green-300'], paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8 }}>
-                <Icon name={'checkmark-circle'} size={20} color='#111' />
-                <Text style={{ fontSize: 14, color: '#111' }}>Finalizar Pesagem</Text>
-              </TouchableOpacity>
             </View>
-          }
 
-
-          {!loading && volume > 0 && !seeList? 
-            <>
-            <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 2, backgroundColor: '#efefef', borderBottomWidth: 1, borderBottomColor: colors['gray-200'], borderRadius: 8, overflow: 'hidden', paddingVertical: 8 }}>
-              <Text style={{ fontWeight: 'bold' }}>Itens no volume {volume.toString().padStart(2, '0')}</Text>
-            </View>
-              {ordem.ITENS.filter(item => item.VOLUMES.length > 0).map((item, index) => {
-                return item.VOLUMES.map((vol, index) => {
-                  if(vol.volume === volume) {
-                    // console.log(item.PRODUTO.CODIGO,vol)
-                    return <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8, backgroundColor: '#efefef', borderBottomWidth: 1, borderBottomColor: colors['gray-200'], borderRadius: 8, overflow: 'hidden', paddingVertical: 8 }}>
-                    <Image source={{ uri: item.PRODUTO.IMAGEM }} style={{ width: 30, height: 30, borderRadius: 2 }} />
-                    <View style={{ flexDirection: 'column', flex: 1 }}>
-                      <Text style={{ fontSize: 12 }}>Partnumber: <Text style={{ fontWeight: 'bold' }}>{item.PRODUTO.PARTNUMBER}</Text></Text>
-                      <Text style={{ fontSize: 12 }}>Código ME: <Text style={{ fontWeight: 'bold' }}>{item.PRODUTO.CODIGO}</Text></Text>
-                      <Text style={{ fontSize: 12 }}>Endereço: <Text style={{ fontWeight: 'bold' }}>{item.ARMAZEM+' '+item.ENDERECO}</Text></Text>
-                    </View>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, width: 70 }}>
-                    <Text style={{ fontSize: 12, width: '100%', textAlign: 'center' }}>{vol.quantidade} un.</Text>
-                    </View>
+            {ordem.STATUS !== '4' && <View style={{ height: 32, backgroundColor: ordem.STATUS === '2' ? colors['red-300'] : colors['green-300'], flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 4 }}>
+              <View style={{ flexDirection: 'column', flex: 1, paddingHorizontal: 12, paddingVertical: 6 }}>
+                <Text style={{ fontSize: 14,color: '#FFF',textAlign: 'center' }}>Status: {ordem.STATUS === '2' ? 'Não iniciado' : 'Iniciado'} - {ordem.RESTAM} item(s) restante(s)</Text>
+              </View>
+            </View>}
+            
+            {volumes.length > 0 && <View style={{ backgroundColor: colors['gray-50'], flexDirection: 'column', alignItems: 'center', gap: 8, borderRadius: 4 }}>
+                {find && <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8, backgroundColor: '#FFF', borderRadius: 8, overflow: 'hidden', paddingVertical: 8 }}>
+                  <Image source={{ uri: find.PRODUTO.IMAGEM }} style={{ width: 50, height: 50 }} />
+                  <View style={{ flexDirection: 'column', flex: 1 }}>
+                  <Text style={{ fontSize: 12 }}>Volume: <Text style={{ fontWeight: 'bold', fontSize: 16 }}>{volume.toString().padStart(2, '0')}</Text></Text>
+                    <Text style={{ fontSize: 12 }}>Partnumber: <Text style={{ fontWeight: 'bold' }}>{find.PRODUTO.PARTNUMBER}</Text></Text>
+                    <Text style={{ fontSize: 12 }}>Código ME: <Text style={{ fontWeight: 'bold' }}>{find.PRODUTO.CODIGO}</Text></Text>
                   </View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, width: 70 }}>
+                    <TextInput
+                      editable={true}
+                      ref={qtdRef}
+                      keyboardType='numeric'
+                      autoFocus={true}
+                      onEndEditing={e => onQuantityChange(find, e.nativeEvent.text)}
+                      value={find.CONFSN === 'S' ? 1 : 0}
+                      style={[styles.button,{ minWidth: 50, textAlign: 'center'}]}
+                    />
+                  </View>
+                </View>}
+              {volumes.sort((a, b) => a.volume - b.volume).map((vol, index) => {
+                if(seeOtherVolumes || volume === (index + 1)) {
+                return <View key={index} style={{ width: '100%', flexDirection: 'column', alignItems: 'center', gap: 4, borderWidth: 1, borderColor: volume === (index + 1) ? colors['green-300'] : colors['gray-100'], borderRadius: 4, padding: 4 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                  <TouchableOpacity onPress={() => handleSetVolume(index + 1)} style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 0, backgroundColor: colors['gray-50'], paddingHorizontal: 16, paddingVertical: 4, borderRadius: 8 }}>
+                      <Icon name={volume === index + 1 ? 'albums-outline' : 'albums'} size={20} color={colors['gray-300']} />
+                      <Text style={{ fontSize: 14, color: colors['gray-300'] }}>Volume: {(index + 1).toString().padStart(2, '0')}</Text>
+                  </TouchableOpacity>
+                  {ordem.STATUS === '2' && <TouchableOpacity onPress={() => handleIniciar()} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 0, backgroundColor: colors['gray-500'], paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8 }}>
+                      <Icon name={'play'} size={16} color='#FFF' />
+                      <Text style={{ fontSize: 14, color: '#FFF' }}>Iniciar Conferência</Text>
+                  </TouchableOpacity>}
+                  {ordem.STATUS === '3' && volume === (index + 1 ) && <TouchableOpacity onPress={() => setSearchItem(true)} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 0, backgroundColor: colors['gray-500'], paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8 }}>
+                      <Icon name={'add-sharp'} size={20} color='#FFF' />
+                      <Text style={{ fontSize: 14, color: '#FFF' }}>Produtos</Text>
+                  </TouchableOpacity>}
+                  {ordem.STATUS === '4' && searchPeso !== vol.volume && vol.peso != 0 &&
+                    <>
+                      <Text style={{ fontSize: 16, fontWeight: 'bold', color: vol.peso < ordem.ITENS.filter(item => item.VOLUMES.length > 0).map(item => item.PRODUTO.PESO * item.VOLUMES.filter(vol2 => vol2.volume === vol.volume).map(vol3 => vol3.quantidade).reduce((a, b) => a + b, 0)).reduce((a, b) => a + b, 0).toFixed(2) ? colors["red-300"] : colors['green-300'] }}>
+                        {vol.peso} Kg <Text style={{ fontSize: 16, color: colors['gray-200'] }}> / {ordem.ITENS.filter(item => item.VOLUMES.length > 0).map(item => item.PRODUTO.PESO * item.VOLUMES.filter(vol2 => vol2.volume === vol.volume).map(vol3 => vol3.quantidade).reduce((a, b) => a + b, 0)).reduce((a, b) => a + b, 0).toFixed(2)} Kg</Text></Text>
+                    </>
                   }
-                })
-              }
-            )}</>
-          :
-          <>
-            <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8, backgroundColor: '#efefef', borderBottomWidth: 1, borderBottomColor: colors['gray-200'], borderRadius: 8, overflow: 'hidden', paddingVertical: 8 }}>
-              <Text style={{ fontWeight: 'bold' }}>Produtos pendentes de conferência</Text>
-            </View>
-              {ordem.ITENS.filter(item => item.SALDO > 0).map((item, index) => <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8, backgroundColor: '#efefef', borderBottomWidth: 1, borderBottomColor: colors['gray-200'], borderRadius: 8, overflow: 'hidden', paddingVertical: 8 }}>
-                <Image source={{ uri: item.PRODUTO.IMAGEM }} style={{ width: 30, height: 30, borderRadius: 2 }} />
-                <View style={{ flexDirection: 'column', flex: 1 }}>
-                  <Text style={{ fontSize: 12 }}>Partnumber: <Text style={{ fontWeight: 'bold' }}>{item.PRODUTO.PARTNUMBER}</Text></Text>
-                  <Text style={{ fontSize: 12 }}>Código ME: <Text style={{ fontWeight: 'bold' }}>{item.PRODUTO.CODIGO}</Text></Text>
+                  {ordem.STATUS === '4' && 
+                  <>
+                  
+                  {searchPeso === volume && vol.volume === volume ?
+                    <TextInput
+                      editable={true}
+                      ref={qtdRef}
+                      keyboardType='numeric'
+                      autoFocus={true}
+                      onEndEditing={e => onChangePeso(volume, e.nativeEvent.text.replace(',', '.'))}
+                      // value={volumes[index].quantidade.toString()}
+                      style={{ backgroundColor: '#FFF', borderRadius: 4, paddingHorizontal: 8, paddingVertical: 4, flex: 1, textAlign: 'right', fontSize: 16, fontWeight: 'bold', color: colors['green-300']}}
+                    />
+                  :
+                  !vol.peso && <TouchableOpacity onPress={() => handleSearchPeso(vol.volume)} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 0, backgroundColor: colors['gray-500'], paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8 }}>
+                        <Icon name={'add-sharp'} size={20} color='#FFF' />
+                        <Text style={{ fontSize: 14, color: '#FFF' }}>Peso</Text>
+                    </TouchableOpacity>
+                  }
+                  </>}
+                  {index > 0 && ordem.STATUS < '4' && !ordem.ITENS.find(item => item.VOLUMES && item.VOLUMES.find(vol => vol.volume === volume)) && volume === (index + 1 ) && <TouchableOpacity onPress={() => handleRemoveVolume()} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 0, backgroundColor: colors['gray-500'], paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8 }}>
+                      <Icon name={'trash-bin'} size={16} color='#FFF' />
+                  </TouchableOpacity>}
                 </View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, width: 70 }}>
-                <Text style={{ fontSize: 12, width: '100%', textAlign: 'center' }}>{item.SALDO} un.</Text>
-                </View>
-              </View>)}
-              </>
-          }
+              </View>}}
+              )}
+            </View>}
+
+            {ordem.STATUS === '3' && <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: 2, marginTop: 0, paddingHorizontal: 8, paddingVertical: 8, borderRadius: 4 }}>
+              {ordem.ITENS.find(item => item.SALDO > 0) && <TouchableOpacity onPress={() => handleAddVolume()} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 0, backgroundColor: colors['gray-500'], paddingHorizontal: 8, paddingVertical: 8, borderRadius: 4 }}>
+                  <Icon name={'add-sharp'} size={14} color='#FFF' />
+                  <Text style={{ fontSize: 12, color: '#FFF' }}>Volume</Text>
+              </TouchableOpacity>}
+              <TouchableOpacity onPress={() => setSeeOtherVolumes(!seeOtherVolumes)} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 0, backgroundColor: colors['gray-50'], borderWidth: 1, borderColor: seeOtherVolumes ? colors['green-300'] : colors['gray-100'], paddingHorizontal: 8, paddingVertical: 8, borderRadius: 4 }}>
+                  <Icon name={seeOtherVolumes ? 'eye' : 'eye-off'} size={14} color='#111' />
+                  <Text style={{ fontSize: 12, color: '#111' }}>Outros volumes</Text>
+              </TouchableOpacity>
+              {ordem.ITENS.find(item => item.SALDO > 0) ? <TouchableOpacity onPress={() => handleSeeList()} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 0, backgroundColor: colors['gray-50'], borderWidth: 1, borderColor: seeList ? colors['green-300'] : colors['gray-100'], paddingHorizontal: 8, paddingVertical: 8, borderRadius: 4 }}>
+                  <Icon name={seeList ? 'eye' : 'eye-off'} size={14} color='#111' />
+                  <Text style={{ fontSize: 12, color: '#111' }}>Pendentes</Text>
+              </TouchableOpacity>
+              :
+              <TouchableOpacity onPress={() => setOrdem({...ordem, STATUS: '4' })} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 0, backgroundColor: colors['green-300'], paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8 }}>
+              <Text style={{ fontSize: 14, color: '#111' }}>Realizar Pesagem</Text>
+              <Icon name={'barcode'} size={20} color='#111' />
+            </TouchableOpacity>}
+            </View>}
+
+            {ordem.STATUS === '4' && volumes.filter(vol => !vol.peso).length === 0 && 
+              <View style={{ width: '100%', flexDirection: 'column', alignItems: 'center', gap: 8, borderRadius: 4 }}>
+                {/* Finalizar pesagem */}
+                <TouchableOpacity onPress={() => handleSendPeso()} style={{ width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 0, backgroundColor: colors['green-300'], paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8 }}>
+                  <Icon name={'checkmark-circle'} size={20} color='#111' />
+                  <Text style={{ fontSize: 14, color: '#111' }}>Finalizar Pesagem</Text>
+                </TouchableOpacity>
+              </View>
+            }
+
+
+            {!loading && volume > 0 && !seeList? 
+              <>
+              <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 2, backgroundColor: '#efefef', borderBottomWidth: 1, borderBottomColor: colors['gray-200'], borderRadius: 8, overflow: 'hidden', paddingVertical: 8 }}>
+                <Text style={{ fontWeight: 'bold' }}>Itens no volume {volume.toString().padStart(2, '0')}</Text>
+              </View>
+                {ordem.ITENS.filter(item => item.VOLUMES.length > 0).map((item, index) => {
+                  return item.VOLUMES.map((vol, index) => {
+                    if(vol.volume === volume) {
+                      // console.log(item.PRODUTO.CODIGO,vol)
+                      return <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8, backgroundColor: '#efefef', borderBottomWidth: 1, borderBottomColor: colors['gray-200'], borderRadius: 8, overflow: 'hidden', paddingVertical: 8 }}>
+                      <Image source={{ uri: item.PRODUTO.IMAGEM }} style={{ width: 30, height: 30, borderRadius: 2 }} />
+                      <View style={{ flexDirection: 'column', flex: 1 }}>
+                        <Text style={{ fontSize: 12 }}>Partnumber: <Text style={{ fontWeight: 'bold' }}>{item.PRODUTO.PARTNUMBER}</Text></Text>
+                        <Text style={{ fontSize: 12 }}>Código ME: <Text style={{ fontWeight: 'bold' }}>{item.PRODUTO.CODIGO}</Text></Text>
+                        <Text style={{ fontSize: 12 }}>Endereço: <Text style={{ fontWeight: 'bold' }}>{item.ARMAZEM+' '+item.ENDERECO}</Text></Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, width: 70 }}>
+                      <Text style={{ fontSize: 12, width: '100%', textAlign: 'center' }}>{vol.quantidade} un.</Text>
+                      </View>
+                    </View>
+                    }
+                  })
+                }
+              )}</>
+            :
+            <>
+              <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8, backgroundColor: '#efefef', borderBottomWidth: 1, borderBottomColor: colors['gray-200'], borderRadius: 8, overflow: 'hidden', paddingVertical: 8 }}>
+                <Text style={{ fontWeight: 'bold' }}>Produtos pendentes de conferência</Text>
+              </View>
+                {ordem.ITENS.filter(item => item.SALDO > 0).map((item, index) => <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8, backgroundColor: '#efefef', borderBottomWidth: 1, borderBottomColor: colors['gray-200'], borderRadius: 8, overflow: 'hidden', paddingVertical: 8 }}>
+                  <Image source={{ uri: item.PRODUTO.IMAGEM }} style={{ width: 30, height: 30, borderRadius: 2 }} />
+                  <View style={{ flexDirection: 'column', flex: 1 }}>
+                    <Text style={{ fontSize: 12 }}>Partnumber: <Text style={{ fontWeight: 'bold' }}>{item.PRODUTO.PARTNUMBER}</Text></Text>
+                    <Text style={{ fontSize: 12 }}>Código ME: <Text style={{ fontWeight: 'bold' }}>{item.PRODUTO.CODIGO}</Text></Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, width: 70 }}>
+                  <Text style={{ fontSize: 12, width: '100%', textAlign: 'center' }}>{item.SALDO} un.</Text>
+                  </View>
+                </View>)}
+                </>
+            }
         </View>}
 
       </View>

@@ -8,6 +8,7 @@ import {
   Text,
   TouchableOpacity,
   Alert,
+  ScrollView,
 } from 'react-native'
 import Icon from 'react-native-vector-icons/Ionicons'
 import { colors } from '../../../styles/colors'
@@ -63,6 +64,21 @@ export default function Pesagem({ navigation }) {
             ])
             setLoading(false)
           }
+        }).catch((err) => {
+          setLoading(false)
+          if(err.message?.includes('401')) {
+            refreshAuthentication();
+            return;
+          }
+          console.log(err)
+          // Alert.alert('Atenção!',err.Message, [
+          //   {
+          //     text: 'Ok',
+          //     onPress: () => {
+          //       setLoading(false)
+          //     }
+          //   },
+          // ])
         })
       }
       setLoading(true)
@@ -93,7 +109,8 @@ export default function Pesagem({ navigation }) {
           <ActivityIndicator color={colors["green-300"]} />
           </View>
         :
-          <View style={styles.inputContent}>
+          <ScrollView>
+            <View style={styles.inputContent}>
             <View style={styles.productContainer}>
               <View style={styles.formContainer}>
                 {!pedido ? <View
@@ -150,6 +167,7 @@ export default function Pesagem({ navigation }) {
               </View>
             </View>
           </View>
+          </ScrollView>
       }
       </ImageBackground>
     </SafeAreaView>

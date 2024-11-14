@@ -12,7 +12,7 @@ export const UserContext = createContext(defaultUser)
 const UserProvider = ({ children }) => {
   const [user, setUser] = useState({ refresh_token: null })
   const [selectedPrinter, setSelectedPrinter] = useState(null)
-  const APP_VERSION = '1.0.69'
+  const APP_VERSION = '1.0.74'
   const [ambiente, setAmbiente] = useState('producao')
   const [baseURL, setBaseURL] = useState(API_URL)
 
@@ -28,7 +28,7 @@ const UserProvider = ({ children }) => {
         axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.access_token}`;
         setUser({...user, refresh_token: response.data.refresh_token});
       })
-    }
+  }
 
   const value = {
     APP_VERSION,

@@ -9,6 +9,7 @@ import {
   DrawerLayoutAndroid,
   ActivityIndicator,
   Alert,
+  FlatList,
 } from 'react-native'
 import Icon from 'react-native-vector-icons/Ionicons'
 import { colors } from '../../../styles/colors'
@@ -17,11 +18,13 @@ import Scanner from '../../../components/scanner'
 import axios from 'axios'
 import PrinterButton from '../../../components/PrinterButton'
 import { useUser } from '../../../hooks/user'
+import { TouchableOpacity } from 'react-native'
 export default function Reimpressao({ navigation, search = '' }) {
 
   const [ product, setProduct ] = useState(null)
   const [openProductScanner, setOpenProductScanner] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [ultimasEtiquetas, setUltimasEtiquetas] = useState(null)
   const { selectedPrinter } = useUser()
   const drawer = useRef(null);
 
@@ -72,7 +75,15 @@ export default function Reimpressao({ navigation, search = '' }) {
       }
     ])
   }
-    
+  
+  useEffect(() => {
+    axios.get(`/wReimpressao`).then(({ data }) => {
+      // console.log(data)
+      setUltimasEtiquetas(data.ETIQUETAS)
+    }).catch(err => {
+      console.log(err)
+    })
+  },[])
 
   useEffect(() => {
     if(search) {
@@ -114,7 +125,7 @@ export default function Reimpressao({ navigation, search = '' }) {
                 <ActivityIndicator color={colors['green-300']} />
               </View>
               : 
-              <View style={styles.inputContent}>
+              <View style={[styles.inputContent, { marginTop: 32 }]}>
                 <Pressable
                   style={styles.button}
                   onPress={() => setOpenProductScanner(true)}
@@ -159,7 +170,16 @@ export default function Reimpressao({ navigation, search = '' }) {
                 </View>
               </View>
               }
-  
+
+              <Text style={{ marginTop: 32, fontWeight: 'bold', fontSize: 18, color: '#222', marginBottom: 4 }}>Últimas Etiquetas</Text>
+              {ultimasEtiquetas ? <FlatList style={{ width: '100%' }} data={ultimasEtiquetas} renderItem={({ item }) => <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: 8, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: colors['gray-200'], borderRadius: 8, overflow: 'hidden', paddingVertical: 12 }}>
+                <Text style={{ fontWeight: 'bold', fontSize: 12 }}>Etiqueta: <Text style={{ fontWeight: 'normal', fontSize: 14 }}>{item.CODIGO}</Text></Text>
+                <Text style={{ fontWeight: 'bold', fontSize: 12 }}>Produto: <Text style={{ fontWeight: 'normal', fontSize: 14 }}>{item.PRODUTO}</Text></Text>
+                <TouchableOpacity onPress={() => getProductData(item.CODIGO)}>
+                  <Icon name="print" color='#111' size={24} />
+                </TouchableOpacity>
+              </View>} /> : <ActivityIndicator color={colors['gray-500']} />}
+
               <PrinterButton navigation={navigation} />
             </View>
           )}

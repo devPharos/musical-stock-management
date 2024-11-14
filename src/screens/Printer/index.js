@@ -4,6 +4,7 @@ import {
   View,
   ImageBackground,
   Text,
+  ScrollView,
 } from 'react-native'
 import { colors } from '../../styles/colors'
 import Header from '../../components/header'
@@ -48,7 +49,7 @@ export default function PrinterSelection({ navigation }) {
         source={require('../../assets/bg.png')}
         style={styles.content}
       >
-        <View style={styles.cardContainer}>
+        <ScrollView style={styles.cardContainer}>
           <View style={styles.header}>
             <Text style={styles.title}>Selecione uma impressora</Text>
           </View>
@@ -60,11 +61,12 @@ export default function PrinterSelection({ navigation }) {
                 <PrinterCardItem
                   printer={printer}
                   key={index}
+                  navigation={navigation}
                   selected={selectedPrinterIndex === index}
                 />
               )
             })}
-        </View>
+        </ScrollView>
       </ImageBackground>
     </SafeAreaView>
   )

@@ -22,6 +22,7 @@ export default function TopTabs({ route }) {
     >
       <Tab.Screen name="Atualizações" initialParams={routParams} component={Atualizacoes} />
       <Tab.Screen name="Consultas" initialParams={routParams} component={Consultas} />
+      {/* <Tab.Screen name="Relatórios" initialParams={routParams} component={Relatorios} /> */}
     </Tab.Navigator>
   )
 }

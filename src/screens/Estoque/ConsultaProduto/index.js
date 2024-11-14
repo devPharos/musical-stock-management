@@ -19,7 +19,7 @@ import {
   import Scanner from '../../../components/scanner'
   import axios from 'axios'
 import { useUser } from '../../../hooks/user'
-  export default function ConsultaProduto({ search = '', setSearch = () => null }) {
+  export default function ConsultaProduto({ search = '', setSearch = () => null, openProfile = false }) {
     const [ product, setProduct ] = useState(null)
     const [openProductScanner, setOpenProductScanner] = useState(false)
     const [loading, setLoading] = useState(false)
@@ -67,6 +67,12 @@ import { useUser } from '../../../hooks/user'
         getProductData(search);
       }
     },[search])
+
+    useEffect(() => {
+      if(!openProfile) {
+        setOpenProductScanner(false)
+      }
+    },[openProfile])
   
     const onCodeProductScanned = (code) => {
       setOpenProductScanner(false)
@@ -384,6 +390,7 @@ import { useUser } from '../../../hooks/user'
     input: {
       flex: 1,
       width: '100%',
+      fontSize: 12,
       color: colors['gray-500'],
     },
     inputContainer: {

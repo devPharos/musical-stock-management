@@ -390,7 +390,9 @@ export default function Transferencia({ navigation }) {
               />
             </Pressable>}
 
-            {transfer.PRODUTOS.length > 0 && transfer.PRODUTOS.map((product, index) => ( 
+            {transfer.PRODUTOS.length > 0 ?
+            <ScrollView style={{ width: '100%', height: '100%' }}>
+              {transfer.PRODUTOS.map((product, index) => ( 
             <View key={index} style={{  width: '100%', flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', padding: 8, gap: 8, borderBottomWidth: 1, borderBottomColor: colors['gray-200'] }}>
               <TouchableOpacity onPress={() => handleRemove(product)}>
                 <Icon name="trash-bin" size={20} color={colors['red-500']} />
@@ -411,6 +413,8 @@ export default function Transferencia({ navigation }) {
             </View>
           ))
           }
+          </ScrollView>
+          : null }
 
         </View>}
 
